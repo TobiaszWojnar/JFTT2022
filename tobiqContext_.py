@@ -1,0 +1,3 @@
+
+variablesNames = []
+proceduresNames = []
