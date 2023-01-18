@@ -1,21 +1,6 @@
-
+(['PROCEDURE', ('swap', ['a', 'b']), [['ASSIGN', 'c', 'a'], ['ASSIGN', 'a', 'b'], ['ASSIGN', 'b', 'c']], 'PROCEDURE', ('gcd', ['a', 'b', 'c']), [['ASSIGN', 'x', 'a'], ['ASSIGN', 'y', 'b'], ['WHILE', ('ne', 'y', '0'), [['IFELSE', ['ge', 'x', 'y'], [['ASSIGN', 'x', ('sub', 'x', 'y')]], [['PROC', 'swap', ['x', 'y']]]]]], ['ASSIGN', 'c', 'x']]], ['PROGRAM', ['a', 'b', 'c', 'd', 'x', 'y', 'z'], [['READ', 'a'], ['READ', 'b'], ['READ', 'c'], ['READ', 'd'], ['PROC', 'gcd', ['a', 'b', 'x']], ['PROC', 'gcd', ['c', 'd', 'y']], ['PROC', 'gcd', ['x', 'y', 'z']], ['WRITE', 'z']]])
 [
-    'PROGRAM', ['n', 'p'], 
-    [
-        ['READ', 'n'], 
-        ['REPEAT', 
-            [
-                ['ASSIGN', 'p', ('div', 'n', '2')], 
-                ['ASSIGN', 'p', ('mul', '2', 'p')], 
-                ['IFELSE', ('gt', 'n', 'p'), 
-                [
-                    ['WRITE', '1']
-                ], 
-                [
-                    ['WRITE', '0']
-                ]
-            ], 
-            ['ASSIGN', 'n', ('div', 'n', '2')]
-        ], ('eq', 'n', '0')]
-    ]
-]
+    'swap a', 'swap b', 'swap c', 'swap 1ump', 
+    'gcd a', 'gcd b', 'gcd c', 'gcd x', 'gcd y', 'gcd x', 'gcd y', 'gcd 1ump', 
+    'main a', 'main b', 'main c', 'main d', 'main x', 'main y', 'main z', 'main a', 'main b', 'main x', 'main c', 'main d', 'main y', 'main x', 'main y', 'main z', 'main 1ump']
+['swap', 'gcd', 'main']
