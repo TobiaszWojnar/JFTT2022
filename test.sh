@@ -1,1 +1,1 @@
-python3 tobiqCompilator.py examples/error2.imp test.txt
+python3 tobiqCompilator.py examples/program1.imp test.txt

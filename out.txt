@@ -1,3 +1,36 @@
-(['PROCEDURE', ('pa', ['a', 'a']), [['ASSIGN', 'c', 'a'], ['ASSIGN', 'a', ('add', 'c', 'd')]]], ['PROGRAM', ['a', 'b'], [['READ', 'a'], ['PROC', 'pa', ['a', 'b']], ['WRITE', 'b']]])
-['pa a', 'pa a', 'pa c', 'pa d', 'pa 1ump', 'main a', 'main b', 'main a', 'main b', 'main 1ump']
-['pa', 'main']
+
+[
+    'PROCEDURE', ('pa', ['a', 'b']), 
+    [
+        ['ASSIGN', 'a', ('add', 'a', 'b')], 
+        ['ASSIGN', 'b', ('sub', 'a', 'b')]
+    ], 
+    'PROCEDURE', ('pb', ['a', 'b']), 
+    [
+        ['PROC', 'pa', ['a', 'b']], 
+        ['PROC', 'pa', ['a', 'b']]
+    ],
+    'PROCEDURE', ('pc', ['a', 'b']), 
+    [
+        ['PROC', 'pb', ['a', 'b']], 
+        ['PROC', 'pb', ['a', 'b']], 
+        ['PROC', 'pb', ['a', 'b']]
+    ], 
+    'PROCEDURE', ('pd', ['a', 'b']), 
+    [
+        ['PROC', 'pc', ['a', 'b']], 
+        ['PROC', 'pc', ['a', 'b']], 
+        ['PROC', 'pc', ['a', 'b']], 
+        ['PROC', 'pc', ['a', 'b']]
+    ]
+]
+[
+    'PROGRAM', ['a', 'b'], 
+    [	
+        ['READ', 'a'], 
+        ['READ', 'b'], 
+        ['PROC', 'pd', ['a', 'b']], 
+        ['WRITE', 'a'], 
+        ['WRITE', 'b']
+    ]
+]

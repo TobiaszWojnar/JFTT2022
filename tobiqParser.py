@@ -9,6 +9,9 @@ class MyParser(Parser):
 
     @_('procedures main')
     def program_all(self, p):
+
+        tobiqContext_.variablesNames = ["acc","1","tmp1","tmp2","multi","tmp3"]+tobiqContext_.variablesNames
+
         if p[0] != None:
             tobiqContext_.instructions = p[0],p[1]
             return p[0],p[1]
@@ -22,11 +25,11 @@ class MyParser(Parser):
         if len(duplicates) > 0:
             print("ERROR: Secondary declaration of variables = ", duplicates)
 
-        tobiqContext_.proceduresNames.append(p[2][0])
+        tobiqContext_.proceduresNames.append([p[2][0],len(p[2][1])])
         tobiqContext_.variablesNames.append("1ump")
         for i in range(len(tobiqContext_.variablesNames)):
             if not ' ' in tobiqContext_.variablesNames[i]: # if varName one word concat name of procedure in front
-                tobiqContext_.variablesNames[i] = tobiqContext_.proceduresNames[-1] + " " + tobiqContext_.variablesNames[i]
+                tobiqContext_.variablesNames[i] = tobiqContext_.proceduresNames[-1][0] + " " + tobiqContext_.variablesNames[i]
         if p[0] != None:
             return p[0]+["PROCEDURE" , p[2] , p[7]]# p[5],
         else:
@@ -38,11 +41,11 @@ class MyParser(Parser):
         if len(duplicates) > 0:
             print("ERROR: Secondary declaration of variables = ", duplicates)
 
-        tobiqContext_.proceduresNames.append(p[2][0])
+        tobiqContext_.proceduresNames.append([p[2][0],len(p[2][1])])
         tobiqContext_.variablesNames.append("1ump")
         for i in range(len(tobiqContext_.variablesNames)):
             if not ' ' in tobiqContext_.variablesNames[i]: # if varName one word concat name of procedure in front
-                tobiqContext_.variablesNames[i] = tobiqContext_.proceduresNames[-1] + " " + tobiqContext_.variablesNames[i]
+                tobiqContext_.variablesNames[i] = tobiqContext_.proceduresNames[-1][0] + " " + tobiqContext_.variablesNames[i]
         if p[0] != None:
             return p[0]+["PROCEDURE" , p[2] , p[5]]
         else:
@@ -58,20 +61,20 @@ class MyParser(Parser):
         if len(duplicates) > 0:
             print("ERROR: Secondary declaration of variables = ", duplicates)
 
-        tobiqContext_.proceduresNames.append("main")
+        tobiqContext_.proceduresNames.append(["main",])
         tobiqContext_.variablesNames.append("1ump")
         for i in range(len(tobiqContext_.variablesNames)):
             if not ' ' in tobiqContext_.variablesNames[i]: # if varName one word concat name of procedure in front
-                tobiqContext_.variablesNames[i] = tobiqContext_.proceduresNames[-1] + " " + tobiqContext_.variablesNames[i]
+                tobiqContext_.variablesNames[i] = tobiqContext_.proceduresNames[-1][0] + " " + tobiqContext_.variablesNames[i]
         return ["PROGRAM" , p[3] , p[5]]
 
     @_('PROGRAM IS BEGIN commands END')
     def main(self, p):
-        tobiqContext_.proceduresNames.append("main")
+        tobiqContext_.proceduresNames.append(["main",])
         tobiqContext_.variablesNames.append("1ump")
         for i in range(len(tobiqContext_.variablesNames)):
             if not ' ' in tobiqContext_.variablesNames[i]: # if varName one word concat name of procedure in front
-                tobiqContext_.variablesNames[i] = tobiqContext_.proceduresNames[-1] + " " + tobiqContext_.variablesNames[i]
+                tobiqContext_.variablesNames[i] = tobiqContext_.proceduresNames[-1][0] + " " + tobiqContext_.variablesNames[i]
         return ["PROGRAM" , p[3]]
 
     @_('commands command')
@@ -105,9 +108,20 @@ class MyParser(Parser):
 
     @_('proc_head ";"')
     def command(self, p):
-        if not p[0][0] in tobiqContext_.proceduresNames:
-            print(tobiqContext_.proceduresNames)
-            print(">>> Undeclared procedure = ", p[0][0], " in line ", tobiqContext_.line_number)
+        fuckup = True
+        for i in tobiqContext_.proceduresNames:
+            if p[0][0] == i[0]:
+                fuckup = False
+        if fuckup:
+            print("ERROR. Undeclared procedure = ", p[0][0], " in line ", tobiqContext_.line_number)
+            return SyntaxError
+
+        fuckup = True
+        for i in tobiqContext_.proceduresNames:
+            if p[0][0] == i[0] and len(p[0][1]) == i[1]:
+                fuckup = False
+        if fuckup:
+            print("ERROR. Wrong number of arguments ", p[0][0], " ", p[0][1], " in line ", tobiqContext_.line_number)
             return SyntaxError
         else:
             return ["PROC", p[0][0], p[0][1]]
