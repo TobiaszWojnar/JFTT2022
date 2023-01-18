@@ -1,36 +1,20 @@
-
 [
-    'PROCEDURE', ('pa', ['a', 'b']), 
     [
-        ['ASSIGN', 'a', ('add', 'a', 'b')], 
-        ['ASSIGN', 'b', ('sub', 'a', 'b')]
-    ], 
-    'PROCEDURE', ('pb', ['a', 'b']), 
-    [
-        ['PROC', 'pa', ['a', 'b']], 
-        ['PROC', 'pa', ['a', 'b']]
-    ],
-    'PROCEDURE', ('pc', ['a', 'b']), 
-    [
-        ['PROC', 'pb', ['a', 'b']], 
-        ['PROC', 'pb', ['a', 'b']], 
-        ['PROC', 'pb', ['a', 'b']]
-    ], 
-    'PROCEDURE', ('pd', ['a', 'b']), 
-    [
-        ['PROC', 'pc', ['a', 'b']], 
-        ['PROC', 'pc', ['a', 'b']], 
-        ['PROC', 'pc', ['a', 'b']], 
-        ['PROC', 'pc', ['a', 'b']]
-    ]
-]
-[
-    'PROGRAM', ['a', 'b'], 
-    [	
-        ['READ', 'a'], 
-        ['READ', 'b'], 
-        ['PROC', 'pd', ['a', 'b']], 
-        ['WRITE', 'a'], 
-        ['WRITE', 'b']
+        'PROGRAM', ['n', 'p'], 
+        [
+            ['READ', 'n'], 
+            ['WHILE', ('eq', 'n', '0'), 
+                [
+                    ['ASSIGN', 'p', ('div', 'n', '2')], 
+                    ['ASSIGN', 'p', ('mul', '2', 'p')], 
+                    ['IF', ('gt', 'n', 'p'), 
+                        [
+                            ['WRITE', '1']
+                        ]
+                    ], 
+                    ['ASSIGN', 'n', ('div', 'n', '2')]
+                ]
+            ]
+        ]
     ]
 ]

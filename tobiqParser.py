@@ -5,6 +5,7 @@ import tobiqContext_
 class MyParser(Parser):    
     tokens = MyLexer.tokens
     declaringNewVariablesLock = True
+    code = None
     tmpVariables = []
 
     @_('procedures main')
@@ -13,11 +14,11 @@ class MyParser(Parser):
         tobiqContext_.variablesNames = ["acc","1","tmp1","tmp2","multi","tmp3"]+tobiqContext_.variablesNames
 
         if p[0] != None:
-            tobiqContext_.instructions = p[0],p[1]
-            return p[0],p[1]
+            tobiqContext_.instructions = [p[0],p[1]]
+            return [p[0],p[1]]
         else:
-            tobiqContext_.instructions = p[1]
-            return p[1]
+            tobiqContext_.instructions = [p[1]]
+            return [p[1]]
 
     @_('procedures PROCEDURE proc_head IS VAR declarations BEGIN commands END')
     def procedures(self, p):
@@ -31,9 +32,9 @@ class MyParser(Parser):
             if not ' ' in tobiqContext_.variablesNames[i]: # if varName one word concat name of procedure in front
                 tobiqContext_.variablesNames[i] = tobiqContext_.proceduresNames[-1][0] + " " + tobiqContext_.variablesNames[i]
         if p[0] != None:
-            return p[0]+["PROCEDURE" , p[2] , p[7]]# p[5],
+            return p[0]+["PROCEDURE" , p[2][0] , p[7]]# p[5],
         else:
-            return ["PROCEDURE" , p[2] , p[7]]# p[5],
+            return ["PROCEDURE" , p[2][0] , p[7]]# p[5],
 
     @_('procedures PROCEDURE proc_head IS BEGIN commands END')
     def procedures(self, p):
@@ -47,9 +48,9 @@ class MyParser(Parser):
             if not ' ' in tobiqContext_.variablesNames[i]: # if varName one word concat name of procedure in front
                 tobiqContext_.variablesNames[i] = tobiqContext_.proceduresNames[-1][0] + " " + tobiqContext_.variablesNames[i]
         if p[0] != None:
-            return p[0]+["PROCEDURE" , p[2] , p[5]]
+            return p[0]+["PROCEDURE" , p[2][0] , p[5]]
         else:
-            return ["PROCEDURE" , p[2] , p[5]]
+            return ["PROCEDURE" , p[2][0] , p[5]]
 
     @_('empty')
     def procedures(self, p):
@@ -61,7 +62,7 @@ class MyParser(Parser):
         if len(duplicates) > 0:
             print("ERROR: Secondary declaration of variables = ", duplicates)
 
-        tobiqContext_.proceduresNames.append(["main",])
+        tobiqContext_.proceduresNames.append(["ma1n",])
         tobiqContext_.variablesNames.append("1ump")
         for i in range(len(tobiqContext_.variablesNames)):
             if not ' ' in tobiqContext_.variablesNames[i]: # if varName one word concat name of procedure in front
@@ -70,7 +71,7 @@ class MyParser(Parser):
 
     @_('PROGRAM IS BEGIN commands END')
     def main(self, p):
-        tobiqContext_.proceduresNames.append(["main",])
+        tobiqContext_.proceduresNames.append(["ma1n",])
         tobiqContext_.variablesNames.append("1ump")
         for i in range(len(tobiqContext_.variablesNames)):
             if not ' ' in tobiqContext_.variablesNames[i]: # if varName one word concat name of procedure in front
@@ -209,7 +210,6 @@ class MyParser(Parser):
             return SyntaxError
         else:
             return p[0]
-
 
     @_('')
     def empty(self, p):
