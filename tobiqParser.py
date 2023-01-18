@@ -4,6 +4,8 @@ import tobiqContext_
 
 class MyParser(Parser):    
     tokens = MyLexer.tokens
+    declaringNewVariablesLock = True
+    tmpVariables = []
 
     @_('procedures main')
     def program_all(self, p):
@@ -16,6 +18,10 @@ class MyParser(Parser):
 
     @_('procedures PROCEDURE proc_head IS VAR declarations BEGIN commands END')
     def procedures(self, p):
+        duplicates = duplicatesFinder(p[2][1]+p[5])
+        if len(duplicates) > 0:
+            print("ERROR: Secondary declaration of variables = ", duplicates)
+
         tobiqContext_.proceduresNames.append(p[2][0])
         tobiqContext_.variablesNames.append("1ump")
         for i in range(len(tobiqContext_.variablesNames)):
@@ -28,6 +34,10 @@ class MyParser(Parser):
 
     @_('procedures PROCEDURE proc_head IS BEGIN commands END')
     def procedures(self, p):
+        duplicates = duplicatesFinder(p[2][1])
+        if len(duplicates) > 0:
+            print("ERROR: Secondary declaration of variables = ", duplicates)
+
         tobiqContext_.proceduresNames.append(p[2][0])
         tobiqContext_.variablesNames.append("1ump")
         for i in range(len(tobiqContext_.variablesNames)):
@@ -44,6 +54,10 @@ class MyParser(Parser):
 
     @_('PROGRAM IS VAR declarations BEGIN commands END')
     def main(self, p):
+        duplicates = duplicatesFinder(p[3])
+        if len(duplicates) > 0:
+            print("ERROR: Secondary declaration of variables = ", duplicates)
+
         tobiqContext_.proceduresNames.append("main")
         tobiqContext_.variablesNames.append("1ump")
         for i in range(len(tobiqContext_.variablesNames)):
@@ -93,7 +107,7 @@ class MyParser(Parser):
     def command(self, p):
         if not p[0][0] in tobiqContext_.proceduresNames:
             print(tobiqContext_.proceduresNames)
-            print(">>> Undeclared procedure =",p[0][0])
+            print(">>> Undeclared procedure = ", p[0][0], " in line ", tobiqContext_.line_number)
             return SyntaxError
         else:
             return ["PROC", p[0][0], p[0][1]]
@@ -112,12 +126,14 @@ class MyParser(Parser):
 
     @_('declarations "," IDENTIFIER')
     def declarations(self, p):
-        tobiqContext_.variablesNames.append(p[2])
+        if not  p[2] in tobiqContext_.variablesNames:
+            tobiqContext_.variablesNames.append(p[2]) #TODO check if already is
         return p[0] + [p[2]]
 
     @_('IDENTIFIER')
     def declarations(self, p):
-        tobiqContext_.variablesNames.append(p[0])
+        if not  p[0] in tobiqContext_.variablesNames:
+            tobiqContext_.variablesNames.append(p[0]) #TODO check if already is
         return [p[0]]
 
     @_('value')
@@ -175,7 +191,7 @@ class MyParser(Parser):
     @_('IDENTIFIER')
     def value(self, p):
         if not p[0] in tobiqContext_.variablesNames:
-            print(">>> Undeclared variable = ", p[0])
+            print("ERROR. Undeclared variable = ", p[0], " in line ", tobiqContext_.line_number)
             return SyntaxError
         else:
             return p[0]
@@ -184,3 +200,14 @@ class MyParser(Parser):
     @_('')
     def empty(self, p):
         pass
+
+
+def duplicatesFinder(myList):
+    newList = [] # empty list to hold unique elements from the list
+    dupList = [] # empty list to hold the duplicate elements from the list
+    for i in myList:
+        if i not in newList:
+            newList.append(i)
+        else:
+            dupList.append(i)
+    return dupList

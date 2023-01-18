@@ -1,4 +1,5 @@
 from sly import Lexer
+import tobiqContext_
 
 class MyLexer(Lexer):
     tokens = {IDENTIFIER, NUM,
@@ -16,7 +17,8 @@ class MyLexer(Lexer):
 
     @_(r'\n+')
     def ignore_newline(self, t):
-        pass
+        tobiqContext_.line_number+=1
+
 
     def error(self, t):
         raise Exception(f"Illegal character '{t.value[0]}'")

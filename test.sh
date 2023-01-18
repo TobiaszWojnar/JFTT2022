@@ -1,0 +1,1 @@
+python3 tobiqCompilator.py examples/error2.imp test.txt
