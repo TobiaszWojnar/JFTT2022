@@ -1,5 +1,6 @@
 import sys
-from tobiqParserLexer import TobiqLexer, TobiqParser
+from tobiqLexer import MyLexer
+from tobiqParser import MyParser
 import tobiqContext_
 
 def main():
@@ -8,14 +9,15 @@ def main():
         print("io error")
         return
 
-    lex = TobiqLexer()
-    pars = TobiqParser()
+    lex = MyLexer()
+    pars = MyParser()
 
     with open(sys.argv[1]) as in_f:
         text = in_f.read()
 
     pars.parse(lex.tokenize(text))
 
+    print(tobiqContext_.instructions)
     print(tobiqContext_.variablesNames)
     print(tobiqContext_.proceduresNames)
     # code_gen = pars.code

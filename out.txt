@@ -1,0 +1,21 @@
+
+[
+    'PROGRAM', ['n', 'p'], 
+    [
+        ['READ', 'n'], 
+        ['REPEAT', 
+            [
+                ['ASSIGN', 'p', ('div', 'n', '2')], 
+                ['ASSIGN', 'p', ('mul', '2', 'p')], 
+                ['IFELSE', ('gt', 'n', 'p'), 
+                [
+                    ['WRITE', '1']
+                ], 
+                [
+                    ['WRITE', '0']
+                ]
+            ], 
+            ['ASSIGN', 'n', ('div', 'n', '2')]
+        ], ('eq', 'n', '0')]
+    ]
+]

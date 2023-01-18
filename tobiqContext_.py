@@ -1,3 +1,4 @@
 
 variablesNames = []
 proceduresNames = []
+instructions = []
