@@ -7,6 +7,11 @@ class MyParser(Parser):
     declaringNewVariablesLock = True
     code = None
     isInitTrue = True
+    #TODO for now works with one function
+    # change to do we add False on exit identifier procedures
+    # will work for only one?
+    # on exit z procedury make true
+    # on empty make false
     tmpVariables = []
 
     @_('procedures main')
@@ -30,8 +35,6 @@ class MyParser(Parser):
         tc_.proceduresNames.append([p[2][0],len(p[2][1])])
         tc_.variablesNames.append("1ump")
         tc_.variableInit.append(True)
-
-        # self.isInitTrue = True
 
         for i in range(len(tc_.variablesNames)):
             if not ' ' in tc_.variablesNames[i]: # if varName one word concat name of procedure in front
@@ -98,10 +101,10 @@ class MyParser(Parser):
     def commands(self, p):
         return [p[0]]
 
-    # checks if identifier is initialized before usage
     @_('IDENTIFIER GETS expression ";"')
     def command(self, p):
 
+        # Checks if identifier is initialized or is a constant before usage
         if p[2][0] in ["add","sub","mul","div","mod"]: 
             if initChecker(p[2][1]) and initChecker(p[2][2]):
                 tc_.variableInit[tc_.variablesNames.index(p[0])] = True
@@ -125,7 +128,6 @@ class MyParser(Parser):
     @_('REPEAT commands UNTIL condition ";"')
     def command(self, p):
         return ["REPEAT", p[1], p[3]]
-        #TODO DO we want commands, cond || cond, commands
 
     @_('proc_head ";"')
     def command(self, p):
@@ -159,24 +161,24 @@ class MyParser(Parser):
 
     @_('IDENTIFIER "(" declarations ")"')
     def proc_head(self, p):
-        # TODO change to do we add flase on exit identifier procedures
-        # will work for only one?
-        # on exit z procedury make true
-        # on empty make false
         self.isInitTrue = False
+        for id in p[2]:
+            idIndex = tc_.variablesNames.index(id)
+            if not tc_.variableInit[idIndex]:
+                tc_.variableInit[idIndex] = True # TODO may not be ok maybe warning?
         return p[0], p[2]
 
     @_('declarations "," IDENTIFIER')
     def declarations(self, p):
         if not  p[2] in tc_.variablesNames:
-            tc_.variablesNames.append(p[2]) #TODO check if already is
+            tc_.variablesNames.append(p[2])
             tc_.variableInit.append(self.isInitTrue)
         return p[0] + [p[2]]
 
     @_('IDENTIFIER')
     def declarations(self, p):
         if not  p[0] in tc_.variablesNames:
-            tc_.variablesNames.append(p[0]) #TODO check if already is
+            tc_.variablesNames.append(p[0])
             tc_.variableInit.append(self.isInitTrue)
         return [p[0]]
 
