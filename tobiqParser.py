@@ -1,6 +1,7 @@
 from sly import Parser
 from tobiqLexer import MyLexer
-import tobiqContext_
+import tobiqContext_ as tc_
+
 
 class MyParser(Parser):    
     tokens = MyLexer.tokens
@@ -11,13 +12,13 @@ class MyParser(Parser):
     @_('procedures main')
     def program_all(self, p):
 
-        tobiqContext_.variablesNames = ["acc","1","tmp1","tmp2","multi","tmp3"]+tobiqContext_.variablesNames
+        tc_.variablesNames = ["acc","1","tmp1","tmp2","multi","tmp3"]+tc_.variablesNames
 
         if p[0] != None:
-            tobiqContext_.instructions = [p[0],p[1]]
+            tc_.instructions = [p[0],p[1]]
             return [p[0],p[1]]
         else:
-            tobiqContext_.instructions = [p[1]]
+            tc_.instructions = [p[1]]
             return [p[1]]
 
     @_('procedures PROCEDURE proc_head IS VAR declarations BEGIN commands END')
@@ -26,11 +27,11 @@ class MyParser(Parser):
         if len(duplicates) > 0:
             print("ERROR: Secondary declaration of variables = ", duplicates)
 
-        tobiqContext_.proceduresNames.append([p[2][0],len(p[2][1])])
-        tobiqContext_.variablesNames.append("1ump")
-        for i in range(len(tobiqContext_.variablesNames)):
-            if not ' ' in tobiqContext_.variablesNames[i]: # if varName one word concat name of procedure in front
-                tobiqContext_.variablesNames[i] = tobiqContext_.proceduresNames[-1][0] + " " + tobiqContext_.variablesNames[i]
+        tc_.proceduresNames.append([p[2][0],len(p[2][1])])
+        tc_.variablesNames.append("1ump")
+        for i in range(len(tc_.variablesNames)):
+            if not ' ' in tc_.variablesNames[i]: # if varName one word concat name of procedure in front
+                tc_.variablesNames[i] = tc_.proceduresNames[-1][0] + " " + tc_.variablesNames[i]
         if p[0] != None:
             return p[0]+["PROCEDURE" , p[2][0] , p[7]]# p[5],
         else:
@@ -42,11 +43,11 @@ class MyParser(Parser):
         if len(duplicates) > 0:
             print("ERROR: Secondary declaration of variables = ", duplicates)
 
-        tobiqContext_.proceduresNames.append([p[2][0],len(p[2][1])])
-        tobiqContext_.variablesNames.append("1ump")
-        for i in range(len(tobiqContext_.variablesNames)):
-            if not ' ' in tobiqContext_.variablesNames[i]: # if varName one word concat name of procedure in front
-                tobiqContext_.variablesNames[i] = tobiqContext_.proceduresNames[-1][0] + " " + tobiqContext_.variablesNames[i]
+        tc_.proceduresNames.append([p[2][0],len(p[2][1])])
+        tc_.variablesNames.append("1ump")
+        for i in range(len(tc_.variablesNames)):
+            if not ' ' in tc_.variablesNames[i]: # if varName one word concat name of procedure in front
+                tc_.variablesNames[i] = tc_.proceduresNames[-1][0] + " " + tc_.variablesNames[i]
         if p[0] != None:
             return p[0]+["PROCEDURE" , p[2][0] , p[5]]
         else:
@@ -62,20 +63,20 @@ class MyParser(Parser):
         if len(duplicates) > 0:
             print("ERROR: Secondary declaration of variables = ", duplicates)
 
-        tobiqContext_.proceduresNames.append(["ma1n",])
-        tobiqContext_.variablesNames.append("1ump")
-        for i in range(len(tobiqContext_.variablesNames)):
-            if not ' ' in tobiqContext_.variablesNames[i]: # if varName one word concat name of procedure in front
-                tobiqContext_.variablesNames[i] = tobiqContext_.proceduresNames[-1][0] + " " + tobiqContext_.variablesNames[i]
+        tc_.proceduresNames.append(["ma1n",])
+        tc_.variablesNames.append("1ump")
+        for i in range(len(tc_.variablesNames)):
+            if not ' ' in tc_.variablesNames[i]: # if varName one word concat name of procedure in front
+                tc_.variablesNames[i] = tc_.proceduresNames[-1][0] + " " + tc_.variablesNames[i]
         return ["PROGRAM" , p[3] , p[5]]
 
     @_('PROGRAM IS BEGIN commands END')
     def main(self, p):
-        tobiqContext_.proceduresNames.append(["ma1n",])
-        tobiqContext_.variablesNames.append("1ump")
-        for i in range(len(tobiqContext_.variablesNames)):
-            if not ' ' in tobiqContext_.variablesNames[i]: # if varName one word concat name of procedure in front
-                tobiqContext_.variablesNames[i] = tobiqContext_.proceduresNames[-1][0] + " " + tobiqContext_.variablesNames[i]
+        tc_.proceduresNames.append(["ma1n",])
+        tc_.variablesNames.append("1ump")
+        for i in range(len(tc_.variablesNames)):
+            if not ' ' in tc_.variablesNames[i]: # if varName one word concat name of procedure in front
+                tc_.variablesNames[i] = tc_.proceduresNames[-1][0] + " " + tc_.variablesNames[i]
         return ["PROGRAM" , p[3]]
 
     @_('commands command')
@@ -86,8 +87,16 @@ class MyParser(Parser):
     def commands(self, p):
         return [p[0]]
 
+    # checks if identifier is initialized before usage
     @_('IDENTIFIER GETS expression ";"')
     def command(self, p):
+
+        if p[2][0] in ["add","sub","mul","div","mod"]: 
+            if initChecker(p[2][1]) and initChecker(p[2][2]):
+                tc_.variableInit[tc_.variablesNames.index(p[0])] = True
+        else:
+            if initChecker(p[2]):
+                tc_.variableInit[tc_.variablesNames.index(p[0])] = True
         return ["ASSIGN" , p[0] , p[2]]
 
     @_('IF condition THEN commands ELSE commands ENDIF')
@@ -110,25 +119,26 @@ class MyParser(Parser):
     @_('proc_head ";"')
     def command(self, p):
         fuckup = True
-        for i in tobiqContext_.proceduresNames:
+        for i in tc_.proceduresNames:
             if p[0][0] == i[0]:
                 fuckup = False
         if fuckup:
-            print("ERROR. Undeclared procedure = ", p[0][0], " in line ", tobiqContext_.line_number)
+            print("ERROR. Undeclared procedure = ", p[0][0], " in line ", tc_.line_number)
             return SyntaxError
 
         fuckup = True
-        for i in tobiqContext_.proceduresNames:
+        for i in tc_.proceduresNames:
             if p[0][0] == i[0] and len(p[0][1]) == i[1]:
                 fuckup = False
         if fuckup:
-            print("ERROR. Wrong number of arguments ", p[0][0], " ", p[0][1], " in line ", tobiqContext_.line_number)
+            print("ERROR. Wrong number of arguments ", p[0][0], " ", p[0][1], " in line ", tc_.line_number)
             return SyntaxError
         else:
             return ["PROC", p[0][0], p[0][1]]
 
     @_('READ IDENTIFIER ";"')
     def command(self, p):
+        tc_.variableInit[tc_.variablesNames.index(p[1])] = True
         return ["READ", p[1]]
 
     @_('WRITE value ";"')
@@ -141,14 +151,16 @@ class MyParser(Parser):
 
     @_('declarations "," IDENTIFIER')
     def declarations(self, p):
-        if not  p[2] in tobiqContext_.variablesNames:
-            tobiqContext_.variablesNames.append(p[2]) #TODO check if already is
+        if not  p[2] in tc_.variablesNames:
+            tc_.variablesNames.append(p[2]) #TODO check if already is
+            tc_.variableInit.append(False)
         return p[0] + [p[2]]
 
     @_('IDENTIFIER')
     def declarations(self, p):
-        if not  p[0] in tobiqContext_.variablesNames:
-            tobiqContext_.variablesNames.append(p[0]) #TODO check if already is
+        if not  p[0] in tc_.variablesNames:
+            tc_.variablesNames.append(p[0]) #TODO check if already is
+            tc_.variableInit.append(False)
         return [p[0]]
 
     @_('value')
@@ -205,8 +217,8 @@ class MyParser(Parser):
 
     @_('IDENTIFIER')
     def value(self, p):
-        if not p[0] in tobiqContext_.variablesNames:
-            print("ERROR. Undeclared variable = ", p[0], " in line ", tobiqContext_.line_number)
+        if not p[0] in tc_.variablesNames:
+            print("ERROR. Undeclared variable = ", p[0], " in line ", tc_.line_number)
             return SyntaxError
         else:
             return p[0]
@@ -225,3 +237,10 @@ def duplicatesFinder(myList):
         else:
             dupList.append(i)
     return dupList
+
+def initChecker(identifier):
+    if identifier.isnumeric() or tc_.variableInit[tc_.variablesNames.index(identifier)]:
+        return True
+    else:
+        print("ERROR. Uninitialized Usage = ", identifier, " in line ", tc_.line_number)
+        return NameError
