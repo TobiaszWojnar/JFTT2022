@@ -6,9 +6,9 @@ import tobiqContext_
 
 def main():
 
-    if len(sys.argv)!=3:
-        print("io error")
-        return
+    # if len(sys.argv)!=3:
+    #     print("io error")
+    #     return
 
     lex = MyLexer()
     pars = MyParser()
@@ -28,12 +28,12 @@ def main():
     # print(".")
     # print(tobiqContext_.instructions[0][2][0][0])
 
-    code = Translator()
-    code.generate_code(tobiqContext_.instructions)
+    # code = Translator()
+    # code.generate_code(tobiqContext_.instructions)
 
-    with open(sys.argv[2], 'w') as out_f:
-        for line in code.code:
-            print(line, file=out_f)
+    # with open(sys.argv[2], 'w') as out_f:
+    #     for line in code.code:
+    #         print(line, file=out_f)
 
 
     # code_gen = pars.code

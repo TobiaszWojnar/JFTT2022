@@ -2,11 +2,11 @@ from sly import Parser
 from tobiqLexer import MyLexer
 import tobiqContext_ as tc_
 
-
 class MyParser(Parser):    
     tokens = MyLexer.tokens
     declaringNewVariablesLock = True
     code = None
+    isInitTrue = True
     tmpVariables = []
 
     @_('procedures main')
@@ -29,6 +29,10 @@ class MyParser(Parser):
 
         tc_.proceduresNames.append([p[2][0],len(p[2][1])])
         tc_.variablesNames.append("1ump")
+        tc_.variableInit.append(True)
+
+        # self.isInitTrue = True
+
         for i in range(len(tc_.variablesNames)):
             if not ' ' in tc_.variablesNames[i]: # if varName one word concat name of procedure in front
                 tc_.variablesNames[i] = tc_.proceduresNames[-1][0] + " " + tc_.variablesNames[i]
@@ -45,6 +49,10 @@ class MyParser(Parser):
 
         tc_.proceduresNames.append([p[2][0],len(p[2][1])])
         tc_.variablesNames.append("1ump")
+        tc_.variableInit.append(True)
+
+        # self.isInitTrue = True
+
         for i in range(len(tc_.variablesNames)):
             if not ' ' in tc_.variablesNames[i]: # if varName one word concat name of procedure in front
                 tc_.variablesNames[i] = tc_.proceduresNames[-1][0] + " " + tc_.variablesNames[i]
@@ -55,6 +63,7 @@ class MyParser(Parser):
 
     @_('empty')
     def procedures(self, p):
+        # self.isInitTrue = False
         return
 
     @_('PROGRAM IS VAR declarations BEGIN commands END')
@@ -65,6 +74,7 @@ class MyParser(Parser):
 
         tc_.proceduresNames.append(["ma1n",])
         tc_.variablesNames.append("1ump")
+        tc_.variableInit.append(True)
         for i in range(len(tc_.variablesNames)):
             if not ' ' in tc_.variablesNames[i]: # if varName one word concat name of procedure in front
                 tc_.variablesNames[i] = tc_.proceduresNames[-1][0] + " " + tc_.variablesNames[i]
@@ -74,6 +84,7 @@ class MyParser(Parser):
     def main(self, p):
         tc_.proceduresNames.append(["ma1n",])
         tc_.variablesNames.append("1ump")
+        tc_.variableInit.append(True)
         for i in range(len(tc_.variablesNames)):
             if not ' ' in tc_.variablesNames[i]: # if varName one word concat name of procedure in front
                 tc_.variablesNames[i] = tc_.proceduresNames[-1][0] + " " + tc_.variablesNames[i]
@@ -143,24 +154,30 @@ class MyParser(Parser):
 
     @_('WRITE value ";"')
     def command(self, p):
+        initChecker(p[1])
         return ["WRITE", p[1]]
 
     @_('IDENTIFIER "(" declarations ")"')
     def proc_head(self, p):
+        # TODO change to do we add flase on exit identifier procedures
+        # will work for only one?
+        # on exit z procedury make true
+        # on empty make false
+        self.isInitTrue = False
         return p[0], p[2]
 
     @_('declarations "," IDENTIFIER')
     def declarations(self, p):
         if not  p[2] in tc_.variablesNames:
             tc_.variablesNames.append(p[2]) #TODO check if already is
-            tc_.variableInit.append(False)
+            tc_.variableInit.append(self.isInitTrue)
         return p[0] + [p[2]]
 
     @_('IDENTIFIER')
     def declarations(self, p):
         if not  p[0] in tc_.variablesNames:
             tc_.variablesNames.append(p[0]) #TODO check if already is
-            tc_.variableInit.append(False)
+            tc_.variableInit.append(self.isInitTrue)
         return [p[0]]
 
     @_('value')
