@@ -1,7 +1,7 @@
 from sly import Lexer
-import tobiqContext_
+import tobiqContext_ as global_
 
-class MyLexer(Lexer):
+class TobiqLexer(Lexer):
     tokens = {IDENTIFIER, NUM,
             PROCEDURE, IS, VAR, END, BEGIN, PROGRAM,
             IF, THEN, ELSE, ENDIF,
@@ -17,7 +17,7 @@ class MyLexer(Lexer):
 
     @_(r'\n+')
     def ignore_newline(self, t):
-        tobiqContext_.line_number+=1
+        global_.lineNumber+=1
 
 
     def error(self, t):

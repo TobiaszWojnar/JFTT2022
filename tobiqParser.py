@@ -1,9 +1,15 @@
 from sly import Parser
-from tobiqLexer import MyLexer
-import tobiqContext_ as tc_
+from tobiqLexer import TobiqLexer
+import tobiqContext_ as global_
+# from tobiqContext_ import variablesNames
+# from tobiqContext_ import instructions
+# from tobiqContext_ import global_.proceduresNames
+# from tobiqContext_ import global_.variableInit
+# from tobiqContext_ import global_.lineNumber
 
-class MyParser(Parser):    
-    tokens = MyLexer.tokens
+
+class TobiqParser(Parser):    
+    tokens = TobiqLexer.tokens
     declaringNewVariablesLock = True
     code = None
     isInitTrue = True
@@ -12,19 +18,18 @@ class MyParser(Parser):
     # will work for only one?
     # on exit z procedury make true
     # on empty make false
-    tmpVariables = []
 
     @_('procedures main')
     def program_all(self, p):
 
-        tc_.variablesNames = ["acc","1","tmp1","tmp2","multi","tmp3"]+tc_.variablesNames
+        global_.variablesNames = ["acc","1","tmp1","tmp2","multi","tmp3"]+global_.variablesNames
 
         if p[0] != None:
-            tc_.instructions = [p[0],p[1]]
-            return [p[0],p[1]]
+            global_.instructions = p[0]+p[1]
+            return p[0]+p[1]
         else:
-            tc_.instructions = [p[1]]
-            return [p[1]]
+            global_.instructions = p[1]
+            return p[1]
 
     @_('procedures PROCEDURE proc_head IS VAR declarations BEGIN commands END')
     def procedures(self, p):
@@ -32,15 +37,15 @@ class MyParser(Parser):
         if len(duplicates) > 0:
             print("ERROR: Secondary declaration of variables = ", duplicates)
 
-        tc_.proceduresNames.append([p[2][0],len(p[2][1])])
-        tc_.variablesNames.append("1ump")
-        tc_.variableInit.append(True)
+        global_.proceduresNames.append([p[2][0],len(p[2][1])])
+        global_.variablesNames.append("1ump")
+        global_.variableInit.append(True)
 
-        for i in range(len(tc_.variablesNames)):
-            if not ' ' in tc_.variablesNames[i]: # if varName one word concat name of procedure in front
-                tc_.variablesNames[i] = tc_.proceduresNames[-1][0] + " " + tc_.variablesNames[i]
+        for i in range(len(global_.variablesNames)):
+            if not ' ' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
+                global_.variablesNames[i] = global_.proceduresNames[-1][0] + " " + global_.variablesNames[i]
         if p[0] != None:
-            return p[0]+["PROCEDURE" , p[2][0] , p[7]]# p[5],
+            return p[0]+[[["PROCEDURE" , p[2][0] , p[7]]]]# p[5],
         else:
             return ["PROCEDURE" , p[2][0] , p[7]]# p[5],
 
@@ -50,19 +55,20 @@ class MyParser(Parser):
         if len(duplicates) > 0:
             print("ERROR: Secondary declaration of variables = ", duplicates)
 
-        tc_.proceduresNames.append([p[2][0],len(p[2][1])])
-        tc_.variablesNames.append("1ump")
-        tc_.variableInit.append(True)
+        global_.proceduresNames.append([p[2][0],len(p[2][1])])
+        global_.variablesNames.append("1ump")
+        global_.variableInit.append(True)
 
         # self.isInitTrue = True
 
-        for i in range(len(tc_.variablesNames)):
-            if not ' ' in tc_.variablesNames[i]: # if varName one word concat name of procedure in front
-                tc_.variablesNames[i] = tc_.proceduresNames[-1][0] + " " + tc_.variablesNames[i]
+        for i in range(len(global_.variablesNames)):
+            if not ' ' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
+                global_.variablesNames[i] = global_.proceduresNames[-1][0] + " " + global_.variablesNames[i]
+        procedureBody = [["PROCEDURE", [p[2][0]], p[5]]]
         if p[0] != None:
-            return p[0]+["PROCEDURE" , p[2][0] , p[5]]
+            return p[0]+procedureBody
         else:
-            return ["PROCEDURE" , p[2][0] , p[5]]
+            return procedureBody
 
     @_('empty')
     def procedures(self, p):
@@ -75,22 +81,22 @@ class MyParser(Parser):
         if len(duplicates) > 0:
             print("ERROR: Secondary declaration of variables = ", duplicates)
 
-        tc_.proceduresNames.append(["ma1n",])
-        tc_.variablesNames.append("1ump")
-        tc_.variableInit.append(True)
-        for i in range(len(tc_.variablesNames)):
-            if not ' ' in tc_.variablesNames[i]: # if varName one word concat name of procedure in front
-                tc_.variablesNames[i] = tc_.proceduresNames[-1][0] + " " + tc_.variablesNames[i]
-        return ["PROGRAM" , p[3] , p[5]]
+        global_.proceduresNames.append(["ma1n",])
+        global_.variablesNames.append("1ump")
+        global_.variableInit.append(True)
+        for i in range(len(global_.variablesNames)):
+            if not ' ' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
+                global_.variablesNames[i] = global_.proceduresNames[-1][0] + " " + global_.variablesNames[i]
+        return [["PROGRAM", p[5]]]
 
     @_('PROGRAM IS BEGIN commands END')
     def main(self, p):
-        tc_.proceduresNames.append(["ma1n",])
-        tc_.variablesNames.append("1ump")
-        tc_.variableInit.append(True)
-        for i in range(len(tc_.variablesNames)):
-            if not ' ' in tc_.variablesNames[i]: # if varName one word concat name of procedure in front
-                tc_.variablesNames[i] = tc_.proceduresNames[-1][0] + " " + tc_.variablesNames[i]
+        global_.proceduresNames.append(["ma1n",])
+        global_.variablesNames.append("1ump")
+        global_.variableInit.append(True)
+        for i in range(len(global_.variablesNames)):
+            if not ' ' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
+                global_.variablesNames[i] = global_.proceduresNames[-1][0] + " " + global_.variablesNames[i]
         return ["PROGRAM" , p[3]]
 
     @_('commands command')
@@ -107,10 +113,10 @@ class MyParser(Parser):
         # Checks if identifier is initialized or is a constant before usage
         if p[2][0] in ["add","sub","mul","div","mod"]: 
             if initChecker(p[2][1]) and initChecker(p[2][2]):
-                tc_.variableInit[tc_.variablesNames.index(p[0])] = True
+                global_.variableInit[global_.variablesNames.index(p[0])] = True
         else:
             if initChecker(p[2]):
-                tc_.variableInit[tc_.variablesNames.index(p[0])] = True
+                global_.variableInit[global_.variablesNames.index(p[0])] = True
         return ["ASSIGN" , p[0] , p[2]]
 
     @_('IF condition THEN commands ELSE commands ENDIF')
@@ -132,26 +138,26 @@ class MyParser(Parser):
     @_('proc_head ";"')
     def command(self, p):
         fuckup = True
-        for i in tc_.proceduresNames:
+        for i in global_.proceduresNames:
             if p[0][0] == i[0]:
                 fuckup = False
         if fuckup:
-            print("ERROR. Undeclared procedure = ", p[0][0], " in line ", tc_.line_number)
+            print("ERROR. Undeclared procedure = ", p[0][0], " in line ", global_.lineNumber)
             return SyntaxError
 
         fuckup = True
-        for i in tc_.proceduresNames:
+        for i in global_.proceduresNames:
             if p[0][0] == i[0] and len(p[0][1]) == i[1]:
                 fuckup = False
         if fuckup:
-            print("ERROR. Wrong number of arguments ", p[0][0], " ", p[0][1], " in line ", tc_.line_number)
+            print("ERROR. Wrong number of arguments ", p[0][0], " ", p[0][1], " in line ", global_.lineNumber)
             return SyntaxError
         else:
             return ["PROC", p[0][0], p[0][1]]
 
     @_('READ IDENTIFIER ";"')
     def command(self, p):
-        tc_.variableInit[tc_.variablesNames.index(p[1])] = True
+        global_.variableInit[global_.variablesNames.index(p[1])] = True
         return ["READ", p[1]]
 
     @_('WRITE value ";"')
@@ -163,23 +169,23 @@ class MyParser(Parser):
     def proc_head(self, p):
         self.isInitTrue = False
         for id in p[2]:
-            idIndex = tc_.variablesNames.index(id)
-            if not tc_.variableInit[idIndex]:
-                tc_.variableInit[idIndex] = True # TODO may not be ok maybe warning?
+            idIndex = global_.variablesNames.index(id)
+            if not global_.variableInit[idIndex]:
+                global_.variableInit[idIndex] = True # TODO may not be ok maybe warning?
         return p[0], p[2]
 
     @_('declarations "," IDENTIFIER')
     def declarations(self, p):
-        if not  p[2] in tc_.variablesNames:
-            tc_.variablesNames.append(p[2])
-            tc_.variableInit.append(self.isInitTrue)
+        if not  p[2] in global_.variablesNames:
+            global_.variablesNames.append(p[2])
+            global_.variableInit.append(self.isInitTrue)
         return p[0] + [p[2]]
 
     @_('IDENTIFIER')
     def declarations(self, p):
-        if not  p[0] in tc_.variablesNames:
-            tc_.variablesNames.append(p[0])
-            tc_.variableInit.append(self.isInitTrue)
+        if not  p[0] in global_.variablesNames:
+            global_.variablesNames.append(p[0])
+            global_.variableInit.append(self.isInitTrue)
         return [p[0]]
 
     @_('value')
@@ -236,8 +242,8 @@ class MyParser(Parser):
 
     @_('IDENTIFIER')
     def value(self, p):
-        if not p[0] in tc_.variablesNames:
-            print("ERROR. Undeclared variable = ", p[0], " in line ", tc_.line_number)
+        if not p[0] in global_.variablesNames:
+            print("ERROR. Undeclared variable = ", p[0], " in line ", global_.lineNumber)
             return SyntaxError
         else:
             return p[0]
@@ -258,8 +264,8 @@ def duplicatesFinder(myList):
     return dupList
 
 def initChecker(identifier):
-    if identifier.isnumeric() or tc_.variableInit[tc_.variablesNames.index(identifier)]:
+    if identifier.isnumeric() or global_.variableInit[global_.variablesNames.index(identifier)]:
         return True
     else:
-        print("ERROR. Uninitialized Usage = ", identifier, " in line ", tc_.line_number)
+        print("ERROR. Uninitialized Usage = ", identifier, " in line ", global_.lineNumber)
         return NameError

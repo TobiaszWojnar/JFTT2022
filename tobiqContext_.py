@@ -1,4 +1,4 @@
-line_number = 0
+lineNumber = 0
 variablesNames = []
 variableInit = []
 proceduresNames = []
