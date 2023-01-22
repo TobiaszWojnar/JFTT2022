@@ -3,12 +3,14 @@ PROGRAM IS
 VAR n, p
 BEGIN
     READ n;
-    WHILE n=0 DO
+    REPEAT
 	p:=n/2;
 	p:=2*p;
 	IF n>p THEN 
 	    WRITE 1;
+	ELSE 
+	    WRITE 0;
 	ENDIF
 	n:=n/2;
-    ENDWHILE
+    UNTIL n=0;
 END
