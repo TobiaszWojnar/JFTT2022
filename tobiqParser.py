@@ -1,11 +1,6 @@
 from sly import Parser
 from tobiqLexer import TobiqLexer
 import tobiqContext_ as global_
-# from tobiqContext_ import variablesNames
-# from tobiqContext_ import instructions
-# from tobiqContext_ import global_.proceduresNames
-# from tobiqContext_ import global_.variableInit
-# from tobiqContext_ import global_.lineNumber
 
 
 class TobiqParser(Parser):    
@@ -22,7 +17,7 @@ class TobiqParser(Parser):
     @_('procedures main')
     def program_all(self, p):
 
-        global_.variablesNames = ["acc","1","tmp1","tmp2","multi","tmp3"]+global_.variablesNames
+        global_.variablesNames = ["ACC","1","tmp1","tmp2","multi","tmp3"]+global_.variablesNames
 
         if p[0] != None:
             global_.instructions = p[0]+p[1]
@@ -38,12 +33,12 @@ class TobiqParser(Parser):
             print("ERROR: Secondary declaration of variables = ", duplicates)
 
         global_.proceduresNames.append([p[2][0],len(p[2][1])])
-        global_.variablesNames.append("1ump")
+        global_.variablesNames.append("JUMP")
         global_.variableInit.append(True)
 
         for i in range(len(global_.variablesNames)):
-            if not ' ' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
-                global_.variablesNames[i] = global_.proceduresNames[-1][0] + " " + global_.variablesNames[i]
+            if not '_' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
+                global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
         if p[0] != None:
             return p[0]+[[["PROCEDURE" , p[2][0] , p[7]]]]# p[5],
         else:
@@ -56,15 +51,15 @@ class TobiqParser(Parser):
             print("ERROR: Secondary declaration of variables = ", duplicates)
 
         global_.proceduresNames.append([p[2][0],len(p[2][1])])
-        global_.variablesNames.append("1ump")
+        global_.variablesNames.append("JUMP")
         global_.variableInit.append(True)
 
         # self.isInitTrue = True
 
         for i in range(len(global_.variablesNames)):
-            if not ' ' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
-                global_.variablesNames[i] = global_.proceduresNames[-1][0] + " " + global_.variablesNames[i]
-        procedureBody = [["PROCEDURE", [p[2][0]], p[5]]]
+            if not '_' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
+                global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
+        procedureBody = [["PROCEDURE", p[2][0], p[5]]]
         if p[0] != None:
             return p[0]+procedureBody
         else:
@@ -81,23 +76,23 @@ class TobiqParser(Parser):
         if len(duplicates) > 0:
             print("ERROR: Secondary declaration of variables = ", duplicates)
 
-        global_.proceduresNames.append(["ma1n",])
-        global_.variablesNames.append("1ump")
+        global_.proceduresNames.append(["MAIN",])
+        global_.variablesNames.append("JUMP")
         global_.variableInit.append(True)
         for i in range(len(global_.variablesNames)):
-            if not ' ' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
-                global_.variablesNames[i] = global_.proceduresNames[-1][0] + " " + global_.variablesNames[i]
-        return [["PROGRAM", p[5]]]
+            if not '_' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
+                global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
+        return [["MAIN", p[5]]]
 
     @_('PROGRAM IS BEGIN commands END')
     def main(self, p):
-        global_.proceduresNames.append(["ma1n",])
-        global_.variablesNames.append("1ump")
+        global_.proceduresNames.append(["MAIN",])
+        global_.variablesNames.append("JUMP")
         global_.variableInit.append(True)
         for i in range(len(global_.variablesNames)):
-            if not ' ' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
-                global_.variablesNames[i] = global_.proceduresNames[-1][0] + " " + global_.variablesNames[i]
-        return ["PROGRAM" , p[3]]
+            if not '_' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
+                global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
+        return ["MAIN" , p[3]]
 
     @_('commands command')
     def commands(self, p):
@@ -133,7 +128,7 @@ class TobiqParser(Parser):
 
     @_('REPEAT commands UNTIL condition ";"')
     def command(self, p):
-        return ["REPEAT", p[1], p[3]]
+        return ["REPEAT", p[3], p[1]]
 
     @_('proc_head ";"')
     def command(self, p):
@@ -194,43 +189,43 @@ class TobiqParser(Parser):
 
     @_('value "+" value')
     def expression(self, p):
-        return "add", p[0], p[2]
+        return ["add", p[0], p[2]]
 
     @_('value "-" value')
     def expression(self, p):
-        return "sub", p[0], p[2]
+        return ["sub", p[0], p[2]]
 
     @_('value "*" value')
     def expression(self, p):
-        return "mul", p[0], p[2]
+        return ["mul", p[0], p[2]]
 
     @_('value "/" value')
     def expression(self, p):
-        return "div", p[0], p[2]
+        return ["div", p[0], p[2]]
 
     @_('value "%" value')
     def expression(self, p):
-        return "mod", p[0], p[2]
+        return ["mod", p[0], p[2]]
 
     @_('value EQ value')
     def condition(self, p):
-        return "eq", p[0], p[2]
+        return ["eq", p[0], p[2]]
 
     @_('value NEQ value')
     def condition(self, p):
-        return "ne", p[0], p[2]
+        return ["ne", p[0], p[2]]
 
     @_('value LT value')
     def condition(self, p):
-        return "gt", p[2], p[0]
+        return ["gt", p[2], p[0]]
 
     @_('value GT value')
     def condition(self, p):
-        return "gt", p[0], p[2]
+        return ["gt", p[0], p[2]]
 
     @_('value LEQ value')
     def condition(self, p):
-        return "ge", p[2], p[0]
+        return ["ge", p[2], p[0]]
 
     @_('value GEQ value')
     def condition(self, p):

@@ -21,21 +21,18 @@ def main():
     print(global_.instructions)
     print(global_.variablesNames)
     print(global_.proceduresNames)
-    # print(".")
-    # print(_.instructions[0][0])
-    # print(".")
-    # print(_.instructions[0][1])
-    # print(".")
-    # print(_.instructions[0][2][0][0])
-
-    trans = TobiqTranslator()
-    trans.generate_code()
-
-    print(trans.code)
 
     with open(sys.argv[2], 'w') as out_f:
         for line in global_.instructions:
             print(line, file=out_f)
+
+    trans = TobiqTranslator()
+    trans.translate()
+
+    with open(sys.argv[3], 'w') as out_f:
+        for line in trans.code:
+            print(line, file=out_f)
+            print(line)      
     
     # with open(sys.argv[2], 'w') as out_f:
     #     for line in pars:
