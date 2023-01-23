@@ -39,10 +39,11 @@ class TobiqParser(Parser):
         for i in range(len(global_.variablesNames)):
             if not '_' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
                 global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
+        procedureBody = [["PROCEDURE", p[2][0], p[7]]]
         if p[0] != None:
-            return p[0]+[[["PROCEDURE" , p[2][0] , p[7]]]]# p[5],
+            return p[0] + procedureBody# p[5],
         else:
-            return ["PROCEDURE" , p[2][0] , p[7]]# p[5],
+            return procedureBody# p[5],
 
     @_('procedures PROCEDURE proc_head IS BEGIN commands END')
     def procedures(self, p):
