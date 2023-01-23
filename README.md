@@ -7,5 +7,5 @@ uruchamiam ./run.sh,
 
 gdzie: 
 * sys.argv[1] = input in GębalaLang
-* sys.argv[2] = Drzewo wyprowadzeń
-* sys.argv[3] = output
+* sys.argv[2] = output Drzewo wyprowadzeń
+* sys.argv[3] = output Kod (jeszcze nie działąjący do końca)
