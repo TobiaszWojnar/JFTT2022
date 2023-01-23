@@ -1,0 +1,1 @@
+python3 tobiqCompilator.py examples/program0.imp out5.txt code5.out

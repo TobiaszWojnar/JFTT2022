@@ -1,0 +1,15 @@
+JUMP @MAIN
+GET @n_MAIN
+<JUMP back REPEAT>
+['div', 'n', '2']
+STORE @p_MAIN
+['mul', '2', 'p']
+STORE @p_MAIN
+<if not @{inst[1]} jump_after> [IFELSE]
+PUT @1_MAIN
+<jump_after next block> [IFELSE]
+PUT @0_MAIN
+['div', 'n', '2']
+STORE @n_MAIN
+<if @{inst[1]} jump_back> [REPEAT]
+HALT

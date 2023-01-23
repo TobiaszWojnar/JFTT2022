@@ -1,0 +1,82 @@
+JUMP @MAIN
+LOAD @a_pa
+ADD @b_pa
+STORE @a_pa
+LOAD @a_pa
+SUB @b_pa
+STORE @b_pa
+LOADI @a
+STORE @pb_a
+LOADI @b
+STORE @pb_b
+SET @{HERE+2} [JUMP_BACK]
+LOAD @pb_JUMP
+JUMP @pb
+LOADI @a
+STORE @pb_a
+LOADI @b
+STORE @pb_b
+SET @{HERE+2} [JUMP_BACK]
+LOAD @pb_JUMP
+JUMP @pb
+LOADI @a
+STORE @pc_a
+LOADI @b
+STORE @pc_b
+SET @{HERE+2} [JUMP_BACK]
+LOAD @pc_JUMP
+JUMP @pc
+LOADI @a
+STORE @pc_a
+LOADI @b
+STORE @pc_b
+SET @{HERE+2} [JUMP_BACK]
+LOAD @pc_JUMP
+JUMP @pc
+LOADI @a
+STORE @pc_a
+LOADI @b
+STORE @pc_b
+SET @{HERE+2} [JUMP_BACK]
+LOAD @pc_JUMP
+JUMP @pc
+LOADI @a
+STORE @pd_a
+LOADI @b
+STORE @pd_b
+SET @{HERE+2} [JUMP_BACK]
+LOAD @pd_JUMP
+JUMP @pd
+LOADI @a
+STORE @pd_a
+LOADI @b
+STORE @pd_b
+SET @{HERE+2} [JUMP_BACK]
+LOAD @pd_JUMP
+JUMP @pd
+LOADI @a
+STORE @pd_a
+LOADI @b
+STORE @pd_b
+SET @{HERE+2} [JUMP_BACK]
+LOAD @pd_JUMP
+JUMP @pd
+LOADI @a
+STORE @pd_a
+LOADI @b
+STORE @pd_b
+SET @{HERE+2} [JUMP_BACK]
+LOAD @pd_JUMP
+JUMP @pd
+GET @a_MAIN
+GET @b_MAIN
+LOADI @a
+STORE @MAIN_a
+LOADI @b
+STORE @MAIN_b
+SET @{HERE+2} [JUMP_BACK]
+LOAD @MAIN_JUMP
+JUMP @MAIN
+PUT @a_MAIN
+PUT @b_MAIN
+HALT

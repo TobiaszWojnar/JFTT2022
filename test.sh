@@ -1,1 +1,0 @@
-python3 tobiqCompilator.py examples2022/example2.imp out3.txt
