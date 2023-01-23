@@ -1,5 +1,0 @@
-['PROCEDURE', 'pa', [['ASSIGN', 'a', ['add', 'a', 'b']], ['ASSIGN', 'b', ['sub', 'a', 'b']]]]
-['PROCEDURE', 'pb', [['PROC', 'pa', ['a', 'b']], ['PROC', 'pa', ['a', 'b']]]]
-['PROCEDURE', 'pc', [['PROC', 'pb', ['a', 'b']], ['PROC', 'pb', ['a', 'b']], ['PROC', 'pb', ['a', 'b']]]]
-['PROCEDURE', 'pd', [['PROC', 'pc', ['a', 'b']], ['PROC', 'pc', ['a', 'b']], ['PROC', 'pc', ['a', 'b']], ['PROC', 'pc', ['a', 'b']]]]
-['MAIN', [['READ', 'a'], ['READ', 'b'], ['PROC', 'pd', ['a', 'b']], ['WRITE', 'a'], ['WRITE', 'b']]]

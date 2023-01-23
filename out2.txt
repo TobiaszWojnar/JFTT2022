@@ -1,2 +1,0 @@
-['PROCEDURE', 'swap', [['ASSIGN', 'c', 'a'], ['ASSIGN', 'a', 'b'], ['ASSIGN', 'b', 'c']], [['PROCEDURE', 'gcd', [['ASSIGN', 'x', 'a'], ['ASSIGN', 'y', 'b'], ['WHILE', ('ne', 'y', '0'), [['IFELSE', ['ge', 'x', 'y'], [['ASSIGN', 'x', ('sub', 'x', 'y')]], [['PROC', 'swap', ['x', 'y']]]]]], ['ASSIGN', 'c', 'x']]]]]
-['PROGRAM', ['a', 'b', 'c', 'd', 'x', 'y', 'z'], [['READ', 'a'], ['READ', 'b'], ['READ', 'c'], ['READ', 'd'], ['PROC', 'gcd', ['a', 'b', 'x']], ['PROC', 'gcd', ['c', 'd', 'y']], ['PROC', 'gcd', ['x', 'y', 'z']], ['WRITE', 'z']]]

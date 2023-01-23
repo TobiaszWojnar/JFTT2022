@@ -1,1 +1,1 @@
-python3 tobiqCompilator.py examples/program1.imp program1.txt program1.out
+python3 tobiqCompilator.py input_codes/program1.imp
