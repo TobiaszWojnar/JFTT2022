@@ -1,0 +1,82 @@
+JUMP @MAIN
+LOADI @a_pa
+ADDI @b_pa
+STOREI @a_pa
+LOADI @a_pa
+SUBI @b_pa
+STOREI @b_pa
+SET @a       [setting variables for procedure]
+STORE @pb_a
+SET @b       [setting variables for procedure]
+STORE @pb_b
+SET @{HERE+2} [JUMP_BACK after procedure]
+STORE @pb_JUMP
+JUMP @pb
+SET @a       [setting variables for procedure]
+STORE @pb_a
+SET @b       [setting variables for procedure]
+STORE @pb_b
+SET @{HERE+2} [JUMP_BACK after procedure]
+STORE @pb_JUMP
+JUMP @pb
+SET @a       [setting variables for procedure]
+STORE @pc_a
+SET @b       [setting variables for procedure]
+STORE @pc_b
+SET @{HERE+2} [JUMP_BACK after procedure]
+STORE @pc_JUMP
+JUMP @pc
+SET @a       [setting variables for procedure]
+STORE @pc_a
+SET @b       [setting variables for procedure]
+STORE @pc_b
+SET @{HERE+2} [JUMP_BACK after procedure]
+STORE @pc_JUMP
+JUMP @pc
+SET @a       [setting variables for procedure]
+STORE @pc_a
+SET @b       [setting variables for procedure]
+STORE @pc_b
+SET @{HERE+2} [JUMP_BACK after procedure]
+STORE @pc_JUMP
+JUMP @pc
+SET @a       [setting variables for procedure]
+STORE @pd_a
+SET @b       [setting variables for procedure]
+STORE @pd_b
+SET @{HERE+2} [JUMP_BACK after procedure]
+STORE @pd_JUMP
+JUMP @pd
+SET @a       [setting variables for procedure]
+STORE @pd_a
+SET @b       [setting variables for procedure]
+STORE @pd_b
+SET @{HERE+2} [JUMP_BACK after procedure]
+STORE @pd_JUMP
+JUMP @pd
+SET @a       [setting variables for procedure]
+STORE @pd_a
+SET @b       [setting variables for procedure]
+STORE @pd_b
+SET @{HERE+2} [JUMP_BACK after procedure]
+STORE @pd_JUMP
+JUMP @pd
+SET @a       [setting variables for procedure]
+STORE @pd_a
+SET @b       [setting variables for procedure]
+STORE @pd_b
+SET @{HERE+2} [JUMP_BACK after procedure]
+STORE @pd_JUMP
+JUMP @pd
+GET @a_MAIN
+GET @b_MAIN
+SET @a       [setting variables for procedure]
+STORE @MAIN_a
+SET @b       [setting variables for procedure]
+STORE @MAIN_b
+SET @{HERE+2} [JUMP_BACK after procedure]
+STORE @MAIN_JUMP
+JUMP @MAIN
+PUT @a_MAIN
+PUT @b_MAIN
+HALT

@@ -1,0 +1,60 @@
+JUMP @MAIN
+LOADI @a
+STOREI @c_swap
+LOADI @b
+STOREI @a_swap
+LOADI @c
+STOREI @b_swap
+LOADI @a
+STOREI @x_gcd
+LOADI @b
+STOREI @y_gcd
+<if not @{inst[1]} jump_out> [WHILE]
+<if not @{inst[1]} jump_after> [IFELSE]
+LOADI @x_gcd
+SUBI @y_gcd
+STOREI @x_gcd
+<jump_after next block> [IFELSE]
+SET @x       [setting variables for procedure]
+STORE @gcd_a
+SET @y       [setting variables for procedure]
+STORE @gcd_b
+SET @{HERE+2} [JUMP_BACK after procedure]
+STORE @gcd_JUMP
+JUMP @gcd
+JUMP @<jump back while>
+LOADI @x
+STOREI @c_gcd
+GET @a_MAIN
+GET @b_MAIN
+GET @c_MAIN
+GET @d_MAIN
+SET @a       [setting variables for procedure]
+STORE @MAIN_a
+SET @b       [setting variables for procedure]
+STORE @MAIN_b
+SET @x       [setting variables for procedure]
+STORE @MAIN_c
+SET @{HERE+2} [JUMP_BACK after procedure]
+STORE @MAIN_JUMP
+JUMP @MAIN
+SET @c       [setting variables for procedure]
+STORE @MAIN_a
+SET @d       [setting variables for procedure]
+STORE @MAIN_b
+SET @y       [setting variables for procedure]
+STORE @MAIN_c
+SET @{HERE+2} [JUMP_BACK after procedure]
+STORE @MAIN_JUMP
+JUMP @MAIN
+SET @x       [setting variables for procedure]
+STORE @MAIN_a
+SET @y       [setting variables for procedure]
+STORE @MAIN_b
+SET @z       [setting variables for procedure]
+STORE @MAIN_c
+SET @{HERE+2} [JUMP_BACK after procedure]
+STORE @MAIN_JUMP
+JUMP @MAIN
+PUT @z_MAIN
+HALT

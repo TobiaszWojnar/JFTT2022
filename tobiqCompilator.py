@@ -22,14 +22,14 @@ def main():
     print(global_.variablesNames)
     print(global_.proceduresNames)
 
-    with open(sys.argv[2], 'w') as out_f:
+    with open(sys.argv[2]+".log", 'w') as out_f:
         for line in global_.instructions:
             print(line, file=out_f)
 
     trans = TobiqTranslator()
     trans.translate()
 
-    with open(sys.argv[3], 'w') as out_f:
+    with open(sys.argv[2], 'w') as out_f:
         for line in trans.code:
             print(line, file=out_f)
             print(line)      
