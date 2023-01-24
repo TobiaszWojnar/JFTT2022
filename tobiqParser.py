@@ -33,7 +33,7 @@ class TobiqParser(Parser):
             print("ERROR: Secondary declaration of variables = ", duplicates)
 
         global_.proceduresNames.append([p[2][0],len(p[2][1])])
-        global_.variablesNames.append("JUMP")
+        global_.variablesNames.append("JUMPBACK")
         global_.variableInit.append(True)
 
         for i in range(len(global_.variablesNames)):
@@ -52,7 +52,7 @@ class TobiqParser(Parser):
             print("ERROR: Secondary declaration of variables = ", duplicates)
 
         global_.proceduresNames.append([p[2][0],len(p[2][1])])
-        global_.variablesNames.append("JUMP")
+        global_.variablesNames.append("JUMPBACK")
         global_.variableInit.append(True)
 
         # self.isInitTrue = True
@@ -78,7 +78,6 @@ class TobiqParser(Parser):
             print("ERROR: Secondary declaration of variables = ", duplicates)
 
         global_.proceduresNames.append(["MAIN"])
-        global_.variablesNames.append("JUMP")
         global_.variableInit.append(True)
         for i in range(len(global_.variablesNames)):
             if not '_' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
@@ -88,7 +87,6 @@ class TobiqParser(Parser):
     @_('PROGRAM IS BEGIN commands END')
     def main(self, p):
         global_.proceduresNames.append(["MAIN"])
-        global_.variablesNames.append("JUMP")
         global_.variableInit.append(True)
         for i in range(len(global_.variablesNames)):
             if not '_' in global_.variablesNames[i]: # if varName one word concat name of procedure in front

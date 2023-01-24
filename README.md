@@ -1,7 +1,7 @@
 # JFTT2022
 ## Tobiasz Wojnar
 
-Aktualnie nie działa - czesć instrukcji nie jest jeszcze tłumaczona, nie poprawiam wskaźników na zimenne/skoki.
+Aktualnie prawie działa - czesć instrukcji nie jest jeszcze tłumaczona, nie poprawiam wskaźników na zimenne/skoki.
 
 ### run
 ```
@@ -12,13 +12,15 @@ Aktualnie nie działa - czesć instrukcji nie jest jeszcze tłumaczona, nie popr
 * [x] Is all code generated?
 * [ ] pointers and not pointers
   * [x] Change parser to return also const as variable
-  * [ ] Do I need to init them?
+  * [ ] Do I need to init const remembered as variables?
   * [X] Does all code have good ADD/ADDI (probably)
   * [ ] READ (no idea)
   * [X] WRITE
   * [ ] in procedures check if local or pointer
   * [X] EVAL VARIABLE in Translator
 * [ ] JUMPS
+  * [X] Create callback table
+  * [ ] Set all callbacks
   * [ ] EVAL JUMPS in Translator
 * [ ] Comment output code with [begin inst], [end inst]
 * [ ] Check if multi works
