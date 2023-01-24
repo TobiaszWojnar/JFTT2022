@@ -38,17 +38,25 @@ class TobiqTranslator:
                     self.translateAssignPROC(inst[1],inst[2],procName)
 
             elif inst[0] == "IFELSE":
-                appendCode("<if not @{inst[1]} jump_after> [IFELSE]")
+                tmpPointerFalse = "NEW_Pointer_F+1"
+                tmpPointerTrue = "NEW_Pointer_T+1"
+                if procName=="MAIN":
+                    self.translateConditionMAIN(inst[1],procName,"IFELSE",tmpPointerFalse)
+                # else:
+                #     self.translateAssignPROC(inst[1],inst[2],procName)
                 self.translateBlock(inst[2],procName,procNameVariables)
-                appendCode("<jump_after next block> [IFELSE]")
-                #set_jump_after_1
+                appendCode("JUMP @"+tmpPointerTrue+"    ["+tmpPointerFalse+"]")
                 self.translateBlock(inst[3],procName,procNameVariables)
-                #set_jump_after_2
+                self.code[-1].append("  ["+tmpPointerTrue+"]")
 
             elif inst[0] == "IF":
-                appendCode("<if not @{inst[1]} jump_after> [IF]")
+                tmpPointer = "NEW_Pointer+1"
+                if procName=="MAIN":
+                    self.translateConditionMAIN(inst[1],procName,"IF",tmpPointer)
+                # else:
+                #     self.translateAssignPROC(inst[1],inst[2],procName)
                 self.translateBlock(inst[2],procName,procNameVariables)
-                #set_jump_after
+                self.code[-1].append("  ["+tmpPointer+"]") #TODO check
 
             elif inst[0] == "WHILE":
                 appendCode("[@HERE_While]")
