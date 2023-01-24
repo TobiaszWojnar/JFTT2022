@@ -1,7 +1,7 @@
 # JFTT2022
 ## Tobiasz Wojnar
 
-Aktualnie prawie działa - czesć instrukcji nie jest jeszcze tłumaczona, nie poprawiam wskaźników na zimenne/skoki.
+Aktualnie prawie działa.
 
 ### run
 ```
@@ -18,10 +18,12 @@ Aktualnie prawie działa - czesć instrukcji nie jest jeszcze tłumaczona, nie p
   * [X] WRITE
   * [ ] in procedures check if local or pointer
   * [X] EVAL VARIABLE in Translator
-* [ ] JUMPS
+* [X] JUMPS
   * [X] Create callback table
-  * [ ] Set all callbacks
-  * [ ] EVAL JUMPS in Translator
+  * [X] Set all callbacks
+  * [X] EVAL JUMPS in Translator
+* [ ] DEBUG:
+  * [ ] ? 
 * [ ] Comment output code with [begin inst], [end inst]
 * [ ] Check if multi works
 * [ ] EXTRA
