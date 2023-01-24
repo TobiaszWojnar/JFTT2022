@@ -3,9 +3,16 @@
 
 Aktualnie nie działa - czesć instrukcji nie jest jeszcze tłumaczona, nie poprawiam wskaźników na zimenne/skoki.
 
-uruchamiam ./run.sh,
+### run
+```
+    python3 tobiqCompilator.py [input_code_file] [output_code_file]
+```
 
-gdzie: 
-* sys.argv[1] = input in GębalaLang
-* sys.argv[2] = output Drzewo wyprowadzeń
-* sys.argv[3] = output Kod (jeszcze nie działąjący do końca)
+### TODO:
+* [ ] Is all code generated
+* [ ] EVAL VARIABLE in Translator
+* [ ] EVAL JUMPS in Translator
+* [ ] Comment output code with [begin inst], [end inst]
+* [ ] Check if any multi, div, mod
+* [ ] Check if każda procedura występuje (while "w poprzednim kroku coś wywaliliśmy")
+* [ ] If więcej niż zero pracedur add Main jump

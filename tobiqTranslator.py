@@ -2,20 +2,12 @@ import tobiqContext_
 
 class TobiqTranslator:
     code = []
-    # jumpBackCounter
 
     def translate(self):
         appendCode = self.code.append
-        # TODO check if multi, div, mod
-        # TODO Check if każda procedura występuje while(w poprzednim kroku coś wywaliliśmy)
-        # TODO if więcej niż zero pracedur
         appendCode("JUMP @MAIN")
-        # TODO Check stałe
-        # TODO Translator.generate_ready_library(self)
-        self.translateProcedures()         # Translator.generate_inner_code(self, lista)
-
+        self.translateProcedures()
         appendCode("HALT")
-        # TODO Fixup jump/callback
         return self.code
 
     def translateProcedures(self):
@@ -47,7 +39,7 @@ class TobiqTranslator:
                 self.translateBlock(inst[2],procName,procNameVariables)
                 appendCode("JUMP @"+tmpPointerTrue+"    ["+tmpPointerFalse+"]")
                 self.translateBlock(inst[3],procName,procNameVariables)
-                self.code[-1].append("  ["+tmpPointerTrue+"]")
+                self.code[-1]+=("  ["+tmpPointerTrue+"]")
 
             elif inst[0] == "IF":
                 tmpPointer = "NEW_Pointer+1"
@@ -56,31 +48,41 @@ class TobiqTranslator:
                 # else:
                 #     self.translateAssignPROC(inst[1],inst[2],procName)
                 self.translateBlock(inst[2],procName,procNameVariables)
+                
                 self.code[-1].append("  ["+tmpPointer+"]") #TODO check
 
             elif inst[0] == "WHILE":
-                appendCode("[@HERE_While]")
-                appendCode("<if not @{inst[1]} jump_out> [WHILE]")# TODO
+                tmpPointer = "NEW_Pointer+1"
+                if procName=="MAIN":
+                    self.translateConditionMAIN(inst[1],procName,"$HERE_While",tmpPointer)
+                # else:
+                #     self.translateAssignPROC(inst[1],inst[2],procName)
                 self.translateBlock(inst[2],procName,procNameVariables)
-                appendCode("JUMP @<jump back while>") #TODO
+                appendCode("JUMP @HERE_While    ["+tmpPointer+"]") #TODO
 
             elif inst[0] == "REPEAT":
-                appendCode("<JUMP back REPEAT>")
+                tmpPointerBack = "JUMP_back_REPEAT+1"
+                tmpPointerOut = "JUMP_out_REPEAT+1"
+                self.code[-1].append("  [$"+tmpPointerBack+"]") 
                 self.translateBlock(inst[2],procName,procNameVariables)
-                appendCode("<if @{inst[1]} jump_back> [REPEAT]")# TODO
+                if procName=="MAIN":
+                    self.translateConditionMAIN(inst[1],procName,"Until",tmpPointerOut)
+                # else:
+                #     self.translateAssignPROC(inst[1],inst[2],procName)
+                appendCode("JUMP @"+tmpPointerBack)
             
             elif inst[0] == "PROC": # DONE (hope so)
                 for i in range(len(inst[2])):
-                    appendCode("SET @"+inst[2][i]+"       [setting variables for procedure]")
+                    appendCode("SET @"+inst[2][i]+"_"+procName)
                     appendCode("STORE @"+procNameVariables[i])
                 appendCode("SET @{HERE+2} [JUMP_BACK after procedure]")
                 appendCode("STORE @"+procName+"_JUMP")
-                appendCode("JUMP @"+procName)
+                appendCode("JUMP @"+procName) #TODO JUMP
             
-            elif inst[0] == "READ": #TODO check if in main
+            elif inst[0] == "READ": #TODO if not in main
                 appendCode("GET @"+inst[1]+"_"+procName)
 
-            elif inst[0] == "WRITE": #TODO check if in main
+            elif inst[0] == "WRITE": #TODO if not in main
                 appendCode("PUT @"+inst[1]+"_"+procName)
 
             else:
@@ -94,108 +96,76 @@ class TobiqTranslator:
             appendCode("SET "+exp[0])
             appendCode("STORE @"+identifier+"_"+procName)
 
-        elif exp[0] == "add": # TODO when ADDI ? WEWNĄTRZ PROCEDUR?
+        elif exp[0] == "add": 
             appendCode("LOAD @"+exp[1]+"_"+procName)
             appendCode("ADD @"+exp[2]+"_"+procName)
             appendCode("STORE @"+identifier+"_"+procName)
 
-        elif exp[0] == "sub": # TODO when ADDI ?
+        elif exp[0] == "sub":
             appendCode("LOAD @"+exp[1]+"_"+procName)
             appendCode("SUB @"+exp[2]+"_"+procName)
             appendCode("STORE @"+identifier+"_"+procName)
 
         elif exp[0] == "mul": #TODO for now naive Are variables set? # multi p q
-            # acc = 0
-            appendCode("SET 0")
-            # m = acc
-            appendCode("STORE @TMP2")
-            # acc = p
-            appendCode("LOAD @"+exp[1]+"_"+procName)
-            # n = acc
-            #TODO should it be a line?
-            # if acc = 0 break
-            appendCode("JZERO @{HERE+9} [multi x 0, dont even try just return 0]")
-            #   acc -1
-            appendCode("SUB @1")
-            #   n = acc
-            appendCode("STORE @TMP1")
-            # 	acc = m
-            appendCode("LOAD @TMP2")
-            # 	acc + q
-            appendCode("ADD  @"+exp[2]+"_"+procName)
-            # 	m = acc
-            appendCode("STORE @TMP2")
-            # 	acc = n
-            appendCode("LOAD @TMP1")
-            # 	jump back if
-            appendCode("JZERO @{HERE-6}")
-            # acc = m
-            appendCode("LOAD @TMP2")
-            # id = acc
-            appendCode("STORE @"+identifier+"_"+procName)
+            
+            appendCode("SET 0               [MULTI BEGIN]") # acc = 0
+            appendCode("STORE @TMP2")                       # m = acc
+            appendCode("LOAD @"+exp[1]+"_"+procName)        # acc = p
+                                                            # n = acc
+                                                            #TODO should it be a line?
+            appendCode("JZERO @{HERE+9} [multi x 0, dont even try just return 0]") # if acc = 0 break
+            appendCode("SUB @1")                            # acc -1
+            appendCode("STORE @TMP1")                       # n = acc
+            appendCode("LOAD @TMP2")                        # acc = m
+            appendCode("ADD  @"+exp[2]+"_"+procName)        # acc + q
+            appendCode("STORE @TMP2")                       # m = acc
+            appendCode("LOAD @TMP1")                        # acc = n
+            appendCode("JZERO @{HERE-6}")                   # jump back if
+            appendCode("LOAD @TMP2")                        # acc = m
+            appendCode("STORE @"+identifier+"_"+procName+"[MULTI END]")  # id = acc
 
         elif exp[0] == "div":# div p d
 
-            # result = 0
-            appendCode("SET 0")
+            appendCode("SET 0")                     # result = 0
             appendCode("STORE @TMP1")
-            # if d = 0 jump_out
-            appendCode("LOAD @"+exp[2]+"_"+procName)
+            appendCode("LOAD @"+exp[2]+"_"+procName)# if d = 0 jump_out
             appendCode("JZERO @")#jump out
-            # rest = p
-            appendCode("LOAD @"+exp[1]+"_"+procName)
+            appendCode("LOAD @"+exp[1]+"_"+procName)# rest = p
             appendCode("STORE @TMP2")
-            # acc = rest - d
-            appendCode("SUB @"+exp[2]+"_"+procName)
-        # if 0 jump_out
-            appendCode("JZERO @")#jump out
-            # rest = acc
-            appendCode("STORE @TMP2")
-            # result + 1
-            appendCode("SET 1")
+            appendCode("SUB @"+exp[2]+"_"+procName) # acc = rest - d
+            appendCode("JZERO @")                   # if 0 jump_out
+            appendCode("STORE @TMP2")               # rest = acc
+            appendCode("SET 1")                     # result + 1
             appendCode("ADD @TMP1")
-            appendCode("STORE @TMP1")
-            # acc = rest - d
+            appendCode("STORE @TMP1")               # acc = rest - d
             appendCode("LOAD @TMP2")
             appendCode("SUB @"+exp[2]+"_"+procName)
-        # jump_back_if
-            appendCode("JUMP @{HERE-7}") #jump back to if
-            # id = result
-            appendCode("LOAD @TMP1")
+            appendCode("JUMP @{HERE-7}")            #jump back to if
+            appendCode("LOAD @TMP1")                # id = result
             appendCode("STORE @"+identifier+"_"+procName)
 
         elif exp[0] == "mod": # mod p d
 
-            # result = 0
-            appendCode("SET 0")
+            appendCode("SET 0")                         # result = 0
             appendCode("STORE @TMP1")
-            # if d = 0 jump_out
-            appendCode("LOAD @"+exp[2]+"_"+procName)
-            appendCode("JZERO @")#jump out
-            # rest = p
-            appendCode("LOAD @"+exp[1]+"_"+procName)
-            appendCode("STORE @TMP2")
-            # acc = rest - d
+            appendCode("LOAD @"+exp[2]+"_"+procName)    # if d = 0 jump_out
+            appendCode("JZERO @")                       #jump out
+            appendCode("LOAD @"+exp[1]+"_"+procName)    # rest = p
+            appendCode("STORE @TMP2")                   # acc = rest - d
             appendCode("SUB @"+exp[2]+"_"+procName)
-        # if 0 jump_out
-            appendCode("JZERO @")#jump out
-            # rest = acc
-            appendCode("STORE @TMP2")
-            # result + 1
-            appendCode("SET 1")
+            appendCode("JZERO @")                       # if 0 jump_out 
+            appendCode("STORE @TMP2")                   # rest = acc
+            appendCode("SET 1")                         # result + 1
             appendCode("ADD @TMP1")
             appendCode("STORE @TMP1")
-            # acc = rest - d
-            appendCode("LOAD @TMP2")
+            appendCode("LOAD @TMP2")                    # acc = rest - d
             appendCode("SUB @"+exp[2]+"_"+procName)
-        # jump_back_if
-            appendCode("JUMP @{HERE-7}") #jump back to if
-            # id = rest
-            appendCode("LOAD @TMP2")
+            appendCode("JUMP @{HERE-7}")                # jump back to if
+            appendCode("LOAD @TMP2")                    # id = rest
             appendCode("STORE @"+identifier+"_"+procName)
 
         else:   #a:=b
-            appendCode("LOAD @"+exp[0])
+            appendCode("LOAD @"+exp[0]+"_"+procName)
             appendCode("STORE @"+identifier+"_"+procName)
 
 
@@ -206,104 +176,73 @@ class TobiqTranslator:
             appendCode("SET "+exp[0])
             appendCode("STOREI @"+identifier+"_"+procName)
 
-        elif exp[0] == "add": # TODO when ADDI ? WEWNĄTRZ PROCEDUR?
+        elif exp[0] == "add":
             appendCode("LOADI @"+exp[1]+"_"+procName)
             appendCode("ADDI @"+exp[2]+"_"+procName)
             appendCode("STOREI @"+identifier+"_"+procName)
 
-        elif exp[0] == "sub": # TODO when ADDI ?
+        elif exp[0] == "sub":
             appendCode("LOADI @"+exp[1]+"_"+procName)
             appendCode("SUBI @"+exp[2]+"_"+procName)
             appendCode("STOREI @"+identifier+"_"+procName)
 
         elif exp[0] == "mul": #TODO for now naive Are variables set? # multi p q
-            # acc = 0
-            appendCode("SET 0")
-            # m = acc
-            appendCode("STOREI @TMP2")
-            # acc = p
-            appendCode("LOADI @"+exp[1]+"_"+procName)
-            # n = acc
-            #TODO should it be a line?
-            # if acc = 0 break
+            
+            appendCode("SET 0")                             # acc = 0
+            appendCode("STOREI @TMP2")                      # m = acc
+            appendCode("LOADI @"+exp[1]+"_"+procName)       # acc = p
+                                                            # n = acc
+                                                            #TODO should it be a line?
+                                                            # if acc = 0 break
             appendCode("JZERO @{HERE+9} [multi x 0, dont even try just return 0]")
-            #   acc -1
-            appendCode("SUBI @1")
-            #   n = acc
-            appendCode("STOREI @TMP1")
-            # 	acc = m
-            appendCode("LOADI @TMP2")
-            # 	acc + q
-            appendCode("ADDI @"+exp[2]+"_"+procName)
-            # 	m = acc
-            appendCode("STOREI @TMP2")
-            # 	acc = n
-            appendCode("LOADI @TMP1")
-            # 	jump back if
-            appendCode("JZERO @{HERE-6}")
-            # acc = m
-            appendCode("LOADI @TMP2")
-            # id = acc
-            appendCode("STOREI @"+identifier+"_"+procName)
+            appendCode("SUBI @1")                           #   acc -1
+            appendCode("STOREI @TMP1")                      #   n = acc
+            appendCode("LOADI @TMP2")                       # 	acc = m
+            appendCode("ADDI @"+exp[2]+"_"+procName)        # 	acc + q
+            appendCode("STOREI @TMP2")                      # 	m = acc
+            appendCode("LOADI @TMP1")                       # 	acc = n
+            appendCode("JZERO @{HERE-6}")                   # 	jump back if
+            appendCode("LOADI @TMP2")                       # acc = m
+            appendCode("STOREI @"+identifier+"_"+procName)  # id = acc
 
         elif exp[0] == "div":# div p d
 
-            # result = 0
-            appendCode("SET 0")
+            appendCode("SET 0")                             # result = 0
             appendCode("STOREI @TMP1")
-            # if d = 0 jump_out
-            appendCode("LOADI @"+exp[2]+"_"+procName)
-            appendCode("JZERO @")#jump out
-            # rest = p
-            appendCode("LOADI @"+exp[1]+"_"+procName)
+            appendCode("LOADI @"+exp[2]+"_"+procName)       # if d = 0 jump_out
+            appendCode("JZERO @")                           # jump out
+            appendCode("LOADI @"+exp[1]+"_"+procName)       # rest = p
             appendCode("STOREI @TMP2")
-            # acc = rest - d
-            appendCode("SUBI @"+exp[2]+"_"+procName)
-        # if 0 jump_out
-            appendCode("JZERO @")#jump out
-            # rest = acc
-            appendCode("STOREI @TMP2")
-            # result + 1
-            appendCode("SET 1")
+            appendCode("SUBI @"+exp[2]+"_"+procName)        # acc = rest - d
+            appendCode("JZERO @")                           # if 0 jump_out
+            appendCode("STOREI @TMP2")                      # rest = acc
+            appendCode("SET 1")                             # result + 1
             appendCode("ADDI @TMP1")
             appendCode("STOREI @TMP1")
-            # acc = rest - d
-            appendCode("LOADI @TMP2")
+            appendCode("LOADI @TMP2")                       # acc = rest - d
             appendCode("SUBI @"+exp[2]+"_"+procName)
-        # jump_back_if
-            appendCode("JUMP @{HERE-7}") #jump back to if
-            # id = result
-            appendCode("LOADI @TMP1")
+            appendCode("JUMP @{HERE-7}")                    #jump back to if
+            appendCode("LOADI @TMP1")                       # id = result
             appendCode("STOREI @"+identifier+"_"+procName)
 
         elif exp[0] == "mod": # mod p d
 
-            # result = 0
-            appendCode("SET 0")
+            appendCode("SET 0")                         # result = 0
             appendCode("STOREI @TMP1")
-            # if d = 0 jump_out
-            appendCode("LOADI @"+exp[2]+"_"+procName)
-            appendCode("JZERO @")#jump out
-            # rest = p
-            appendCode("LOADI @"+exp[1]+"_"+procName)
+            appendCode("LOADI @"+exp[2]+"_"+procName)   # if d = 0 jump_out
+            appendCode("JZERO @")                       #jump out
+            appendCode("LOADI @"+exp[1]+"_"+procName)   # rest = p
             appendCode("STORE @TMP2")
-            # acc = rest - d
-            appendCode("SUBI @"+exp[2]+"_"+procName)
-        # if 0 jump_out
-            appendCode("JZERO @")#jump out
-            # rest = acc
-            appendCode("STOREI @TMP2")
-            # result + 1
-            appendCode("SET 1")
+            appendCode("SUBI @"+exp[2]+"_"+procName)    # acc = rest - d
+            appendCode("JZERO @")                       # if 0 jump_out
+            appendCode("STOREI @TMP2")                  # rest = acc
+            appendCode("SET 1")                         # result + 1
             appendCode("ADDI @TMP1")
             appendCode("STOREI @TMP1")
-            # acc = rest - d
-            appendCode("LOADI @TMP2")
+            appendCode("LOADI @TMP2")                   # acc = rest - d
             appendCode("SUBI @"+exp[2]+"_"+procName)
-        # jump_back_if
-            appendCode("JUMP @{HERE-7}") #jump back to if
-            # id = rest
-            appendCode("LOADI @TMP2")
+            appendCode("JUMP @{HERE-7}")                #jump back to if
+            appendCode("LOADI @TMP2")                   # id = rest
             appendCode("STOREI @"+identifier+"_"+procName)
 
         else:   #a:=b
@@ -312,11 +251,10 @@ class TobiqTranslator:
 
 
     def translateConditionMAIN(self,cond,procName,codePointer,jumpF):
-        #TODO think if I dont want to change and get rid of jumpT outside
         appendCode = self.code.append
         if cond[0] == "eq":
                                                         # 2 3       # 3 2
-            appendCode("SET 1 ["+codePointer+"]")       # acc = 1   # acc = 1
+            appendCode("SET 1 [$"+codePointer+"]")      # acc = 1   # acc = 1
             appendCode("ADD @"+procName+"_"+cond[1])    # acc = 2   # acc = 4
             appendCode("SUB @"+procName+"_"+cond[2])    # acc = 0   # acc = 2
             appendCode("JPOS @"+jumpF)                  # JUMP OUT  # nothing
@@ -326,7 +264,7 @@ class TobiqTranslator:
             
         elif cond[0] == "ne":  # TODO set jumps
                                                         # 3 4           # 5 4
-            appendCode("SET 1 ["+codePointer+"]")       # acc = 1       # acc = 1
+            appendCode("SET 1 [$"+codePointer+"]")      # acc = 1       # acc = 1
             appendCode("ADD @"+procName+"_"+cond[1])    # acc = 4       # acc = 6
             appendCode("SUB @"+procName+"_"+cond[2])    # acc = 0       # acc = 2
             appendCode("JZERO @"+jumpF)                 # NOT jump_out  # NO action
@@ -336,7 +274,7 @@ class TobiqTranslator:
             # appendCode(cond)
         elif cond[0] == "gt":   # 
 
-            appendCode("LOAD @"+procName+"_"+cond[1]+"["+codePointer+"]")
+            appendCode("LOAD @"+procName+"_"+cond[1]+"  [$"+codePointer+"]")
             appendCode("SUB @"+procName+"_"+cond[2])
             appendCode("JPOS @"+jumpF)
             # appendCode("JUMP @"+jumpT)
@@ -344,7 +282,48 @@ class TobiqTranslator:
 
         elif cond[0] == "ge":  # TODO set jumps
 
-            appendCode("SET 1 ["+codePointer+"]")
+            appendCode("SET 1 [$"+codePointer+"]")
+            appendCode("ADD @"+procName+"_"+cond[1])
+            appendCode("SUB @"+procName+"_"+cond[2])
+            appendCode("JPOS @"+jumpF)
+            # appendCode("JUMP @"+jumpT)
+            # appendCode(cond)
+        else:
+            appendCode("ERROR "+cond)
+
+    def translateConditionPROC(self,cond,procName,codePointer,jumpF): #TODO
+        appendCode = self.code.append
+        if cond[0] == "eq":
+                                                        # 2 3       # 3 2
+            appendCode("SET 1 [$"+codePointer+"]")      # acc = 1   # acc = 1
+            appendCode("ADD @"+procName+"_"+cond[1])    # acc = 2   # acc = 4
+            appendCode("SUB @"+procName+"_"+cond[2])    # acc = 0   # acc = 2
+            appendCode("JPOS @"+jumpF)                  # JUMP OUT  # nothing
+            appendCode("SUB @1")                        #           # acc = 1
+            appendCode("JPOS @"+jumpF)                  #           # JUMP OUT
+            # appendCode("JUMP @"+jumpT)                #  True only on this line
+            
+        elif cond[0] == "ne":  # TODO set jumps
+                                                        # 3 4           # 5 4
+            appendCode("SET 1 [$"+codePointer+"]")      # acc = 1       # acc = 1
+            appendCode("ADD @"+procName+"_"+cond[1])    # acc = 4       # acc = 6
+            appendCode("SUB @"+procName+"_"+cond[2])    # acc = 0       # acc = 2
+            appendCode("JZERO @"+jumpF)                 # NOT jump_out  # NO action
+            appendCode("SUB @1")                        # acc = 0       # acc = 1
+            appendCode("JPOS @"+jumpF)                  #               # NOT jump_out
+            # appendCode("JUMP @"+jumpT)
+            # appendCode(cond)
+        elif cond[0] == "gt":   # 
+
+            appendCode("LOAD @"+procName+"_"+cond[1]+"  [$"+codePointer+"]")
+            appendCode("SUB @"+procName+"_"+cond[2])
+            appendCode("JPOS @"+jumpF)
+            # appendCode("JUMP @"+jumpT)
+            # appendCode(cond)
+
+        elif cond[0] == "ge":  # TODO set jumps
+
+            appendCode("SET 1 [$"+codePointer+"]")
             appendCode("ADD @"+procName+"_"+cond[1])
             appendCode("SUB @"+procName+"_"+cond[2])
             appendCode("JPOS @"+jumpF)
@@ -360,5 +339,3 @@ class TobiqTranslator:
             if var.startswith(procName):
                 result.append(var)
         return result
-
-    # def getNumberOf
