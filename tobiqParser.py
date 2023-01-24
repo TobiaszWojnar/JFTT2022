@@ -17,7 +17,7 @@ class TobiqParser(Parser):
     @_('procedures main')
     def program_all(self, p):
 
-        global_.variablesNames = ["ACC","1","tmp1","tmp2","multi","tmp3"]+global_.variablesNames
+        global_.variablesNames = ["ACC","TMP1","TMP2"]+global_.variablesNumbers+global_.variablesNames
 
         if p[0] != None:
             global_.instructions = p[0]+p[1]
@@ -234,6 +234,8 @@ class TobiqParser(Parser):
 
     @_('NUM')
     def value(self, p):
+        if not p[0] in global_.variablesNumbers:
+            global_.variablesNumbers.append(p[0])
         return p[0]
 
     @_('IDENTIFIER')
