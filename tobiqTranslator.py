@@ -11,6 +11,8 @@ class TobiqTranslator:
 
     def translate(self):
 
+        
+
         self.appendCode("JUMP @MAIN_JUMP")
 
         self.translateProcedures()
@@ -19,6 +21,9 @@ class TobiqTranslator:
         self.evalVariables()
         self.evalJumps()
 
+        print("###################")
+        print(self.callbackTable)
+
         return self.code
 
     def translateProcedures(self):
@@ -26,112 +31,112 @@ class TobiqTranslator:
             if proc[0] == "PROCEDURE":
                 self.callbackTable.append([proc[1], global_.lineCounter])
                 procNameVariables = self.getVarNameInProc(proc[1])
-                # TODO ADD JUMPI back
-                self.translateBlock(proc[2],proc[1],procNameVariables)
+                # TODO ADD JUMPI back ###########################################################################
+                self.translateBlock(proc[2], proc[1], procNameVariables)
             elif proc[0] == "MAIN":
                 self.callbackTable.append(["MAIN_JUMP", global_.lineCounter])
                 procNameVariables = self.getVarNameInProc("MAIN")
-                self.translateBlock(proc[1],"MAIN",procNameVariables)
+                self.translateBlock(proc[1],"MAIN", procNameVariables)
 
 
-    def translateBlock(self, block, procName,procNameVariables):
+    def translateBlock(self, block, procName, procNameVariables):
 
         for inst in block:
             if inst[0] == "ASSIGN":
                 if procName=="MAIN":
-                    self.translateAssignMAIN(inst[1],inst[2],procName)
+                    self.translateAssignMAIN(inst[1],inst[2], procName)
                 else:
-                    self.translateAssignPROC(inst[1],inst[2],procName)
+                    self.translateAssignPROC(inst[1],inst[2], procName)
 
             elif inst[0] == "IFELSE":
 
-                ifPointerFalse = "IFELSE+"+str(len(self.callbackTable))
+                ifPointerFalse = "IFELSE_F_"+str(len(self.callbackTable))
                 self.callbackTable.append([ifPointerFalse, 0])
-                ifPointerTrue = "IFELSE+"+str(len(self.callbackTable))
+                ifPointerTrue = "IFELSE_T_"+str(len(self.callbackTable))
                 self.callbackTable.append([ifPointerTrue, 0])
 
 
                 if procName=="MAIN":
-                    self.translateConditionMAIN(inst[1],procName,"IFELSE",ifPointerFalse)
+                    self.translateConditionMAIN(inst[1], procName,"IFELSE+",ifPointerFalse)
                 else:
-                    self.translateConditionPROC(inst[1],procName,"IFELSE",ifPointerFalse)
-                self.translateBlock(inst[2],procName,procNameVariables)
+                    self.translateConditionPROC(inst[1], procName,"IFELSE+",ifPointerFalse)
+                self.translateBlock(inst[2], procName, procNameVariables)
                 self.appendCode("JUMP @"+ifPointerTrue)
                 # SET FALSE
                 # Setting value of the jump
-                for jump_Nr in range(len(self.callbackTable)):
-                    if self.callbackTable[jump_Nr][0]   == ifPointerFalse[0]:
-                        self.callbackTable[jump_Nr][1]  == global_.lineCounter
+                for jumpNr, jumpVal in enumerate(self.callbackTable):
+                    if jumpVal[0] == ifPointerFalse[0]:
+                        self.callbackTable[jumpNr][1] = global_.lineCounter
 
-                self.translateBlock(inst[3],procName,procNameVariables)
+                self.translateBlock(inst[3], procName, procNameVariables)
 
                 # SET TRUE
                 # Setting value of the jump
-                for jump_Nr in range(len(self.callbackTable)):
-                    if self.callbackTable[jump_Nr][0]   == ifPointerTrue[0]:
-                        self.callbackTable[jump_Nr][1]  == global_.lineCounter
+                for jumpNr, jumpVal in enumerate(self.callbackTable):
+                    if jumpVal[0] == ifPointerTrue[0]:
+                        self.callbackTable[jumpNr][1] = global_.lineCounter
 
             elif inst[0] == "IF":
 
                 # Declaring pointer to jump
-                ifPointerFalse = "IF+"+str(len(self.callbackTable))
+                ifPointerFalse = "IF_F_"+str(len(self.callbackTable))
                 self.callbackTable.append([ifPointerFalse, 0])
 
                 if procName=="MAIN":
-                    self.translateConditionMAIN(inst[1],procName,"IF",ifPointerFalse)
+                    self.translateConditionMAIN(inst[1], procName,"IF+",ifPointerFalse)
                 else:
-                    self.translateConditionPROC(inst[1],procName,"IF",ifPointerFalse)
-                self.translateBlock(inst[2],procName,procNameVariables)
+                    self.translateConditionPROC(inst[1], procName,"IF+",ifPointerFalse)
+                self.translateBlock(inst[2], procName, procNameVariables)
                 
 
                 # Setting value of the jump
-                for jump_Nr in range(len(self.callbackTable)):
-                    if self.callbackTable[jump_Nr][0]   == ifPointerFalse[0]:
-                        self.callbackTable[jump_Nr][1]  == global_.lineCounter
+                for jumpNr, jumpVal in enumerate(self.callbackTable):
+                    if jumpVal[0] == ifPointerFalse[0]:
+                        self.callbackTable[jumpNr][1] = global_.lineCounter
 
             elif inst[0] == "WHILE":
-                whilePointerFalse = "WHILE+"+str(len(self.callbackTable))
+                whilePointerFalse = "WHILE_F_"+str(len(self.callbackTable))
                 self.callbackTable.append([whilePointerFalse, 0])
-                whilePointerTrue = "WHILE+"+str(len(self.callbackTable))
+                whilePointerTrue = "WHILE_T_"+str(len(self.callbackTable))
                 self.callbackTable.append([whilePointerTrue, 0])
 
                 if procName=="MAIN":
-                    self.translateConditionMAIN(inst[1],procName,whilePointerTrue,whilePointerFalse)
+                    self.translateConditionMAIN(inst[1], procName, whilePointerTrue, whilePointerFalse)
                 else:
-                    self.translateConditionPROC(inst[1],procName,whilePointerTrue,whilePointerFalse)
-                self.translateBlock(inst[2],procName,procNameVariables)
+                    self.translateConditionPROC(inst[1], procName, whilePointerTrue, whilePointerFalse)
+                self.translateBlock(inst[2], procName, procNameVariables)
                 self.appendCode("JUMP @"+whilePointerTrue)
 
                 # Setting value of the jump
-                for jump_Nr in range(len(self.callbackTable)):
-                    if self.callbackTable[jump_Nr][0]   == whilePointerFalse[0]:
-                        self.callbackTable[jump_Nr][1]  == global_.lineCounter
+                for jumpNr, jumpVal in enumerate(self.callbackTable):
+                    if jumpVal[0] == whilePointerFalse[0]:
+                        self.callbackTable[jumpNr][1] = global_.lineCounter
 
             elif inst[0] == "REPEAT":
-                repeatPointerBack = "REPEAT_BACK+"+str(len(self.callbackTable))
-                self.callbackTable.append([repeatPointerBack, global_.lineCounter])#TODO mabey here
-                repeatPointerOut = "REPEAT_OUT+"+str(len(self.callbackTable))
+                repeatPointerBack = "REPEAT_BACK_"+str(len(self.callbackTable))
+                self.callbackTable.append([repeatPointerBack, global_.lineCounter])
+                repeatPointerOut = "REPEAT_OUT_"+str(len(self.callbackTable))
                 self.callbackTable.append([repeatPointerOut, 0])
 
-                self.translateBlock(inst[2],procName,procNameVariables)
+                self.translateBlock(inst[2], procName, procNameVariables)
                 if procName=="MAIN":
-                    self.translateConditionMAIN(inst[1],procName,"UNTIL",repeatPointerOut)
+                    self.translateConditionMAIN(inst[1], procName,"UNTIL",repeatPointerOut)
                 else:
-                    self.translateConditionPROC(inst[1],procName,"UNTIL",repeatPointerOut)
+                    self.translateConditionPROC(inst[1], procName,"UNTIL",repeatPointerOut)
                 self.appendCode("JUMP @"+repeatPointerBack)
 
-                for jump_Nr in range(len(self.callbackTable)):
-                    if self.callbackTable[jump_Nr][0]   == repeatPointerOut[0]:
-                        self.callbackTable[jump_Nr][1]  == global_.lineCounter
+                for jumpNr, jumpVal in enumerate(self.callbackTable):
+                    if jumpVal[0] == repeatPointerOut[0]:
+                        self.callbackTable[jumpNr][1] = global_.lineCounter
             
             elif inst[0] == "PROC": # DONE (hope so)
                 for i in range(len(inst[2])):
                     self.appendCode("SET @"+procName+"_"+inst[2][i])
                     self.appendCode("STORE @"+procNameVariables[i])
                 self.appendCode("SET "+str(global_.lineCounter+2)+" [JUMP_BACK PROC]")
-                self.appendCode("STORE @"+procName+"_JUMPBACK")
-                self.appendCode("JUMP @"+procName)
-            
+                self.appendCode("STORE @"+inst[1]+"_JUMPBACK")
+                self.appendCode("JUMP @"+inst[1])
+
             elif inst[0] == "READ": 
                 if procName=="MAIN":
                     self.appendCode("GET @"+procName+"_"+inst[1])
@@ -156,16 +161,17 @@ class TobiqTranslator:
                 print("ERROR "+inst)
 
 
-    def translateAssignMAIN(self,identifier,exp,procName):
+    def translateAssignMAIN(self,identifier,exp, procName):
 
-        if len(exp)==1:
-            if exp[0].isnumeric(): #a:=5
-                self.appendCode("SET "+exp[0])
-                self.appendCode("STORE @"+procName+"_"+identifier)
-            else:
-                self.appendCode("LOAD @"+procName+"_"+exp[0])
-                self.appendCode("STORE @"+procName+"_"+identifier)
-        else:
+        if isinstance(exp, int):
+            self.appendCode("SET "+exp)
+            self.appendCode("STORE @"+procName+"_"+identifier)
+
+        elif isinstance(exp, str):
+            self.appendCode("LOAD @"+procName+"_"+exp)
+            self.appendCode("STORE @"+procName+"_"+identifier)
+
+        elif isinstance(exp, list):
             exp1 = exp[1] if exp[1].isnumeric() else procName+"_"+exp[1]
             exp2 = exp[2] if exp[2].isnumeric() else procName+"_"+exp[2]
 
@@ -237,26 +243,27 @@ class TobiqTranslator:
                 self.appendCode("LOAD @TMP2")                       # id = rest
                 self.appendCode("STORE @"+procName+"_"+identifier)
 
-            else:   #a:=b
-                print("ERROR wrong meth")
-
-
-    def translateAssignPROC(self,identifier,exp,procName):
-
-        if len(exp)==1:
-            if exp[0].isnumeric(): #a:=5
-                self.appendCode("SET "+exp[0])
-                self.appendCode("STOREI @"+procName+"_"+identifier)
             else:
-                self.appendCode("LOADI @"+procName+"_"+exp[0])
-                self.appendCode("STOREI @"+procName+"_"+identifier)
+                print("ERROR undefined exp"+str(exp))
         else:
+            print("ERROR exp wrong type"+str(exp))
+
+
+    def translateAssignPROC(self,identifier,exp, procName):
+
+        if isinstance(exp, int):
+            self.appendCode("SET "+exp)
+            self.appendCode("STOREI @"+procName+"_"+identifier)
+        elif isinstance(exp, str):
+            self.appendCode("LOADI @"+procName+"_"+exp)
+            self.appendCode("STOREI @"+procName+"_"+identifier)
+        elif isinstance(exp, list):
             exp1 = exp[1] if exp[1].isnumeric() else procName+"_"+exp[1]
             exp2 = exp[2] if exp[2].isnumeric() else procName+"_"+exp[2]
 
             if exp[0] == "add":
-                self.appendCode("LOADI @"+exp1)   # TODO if @"+procName+"_"+exp[1] / @"+exp1
-                self.appendCode("ADDI @"+exp2)    # TODO if 
+                self.appendCode("LOADI @"+exp1)
+                self.appendCode("ADDI @"+exp2)
                 self.appendCode("STOREI @"+procName+"_"+identifier)
 
             elif exp[0] == "sub":
@@ -288,11 +295,11 @@ class TobiqTranslator:
                 self.appendCode("SET 0")                             # result = 0
                 self.appendCode("STOREI @TMP1")
                 self.appendCode("LOADI @"+exp2)                      # if d = 0 jump_out
-                self.appendCode("JZERO @")                           # jump out
+                self.appendCode("JZERO "+str(global_.lineCounter+13))# jump out
                 self.appendCode("LOADI @"+exp1)                      # rest = p
                 self.appendCode("STOREI @TMP2")
                 self.appendCode("SUBI @"+exp2)                       # acc = rest - d
-                self.appendCode("JZERO @")                           # if 0 jump_out
+                self.appendCode("JZERO "+str(global_.lineCounter+9)) # if 0 jump_out
                 self.appendCode("STOREI @TMP2")                      # rest = acc
                 self.appendCode("SET 1")                             # result + 1
                 self.appendCode("ADDI @TMP1")
@@ -308,11 +315,11 @@ class TobiqTranslator:
                 self.appendCode("SET 0")                             # result = 0
                 self.appendCode("STOREI @TMP1")
                 self.appendCode("LOADI @"+exp2)                      # if d = 0 jump_out
-                self.appendCode("JZERO @")                           # jump out
+                self.appendCode("JZERO "+str(global_.lineCounter+13))# jump out
                 self.appendCode("LOADI @"+exp1)                      # rest = p
                 self.appendCode("STOREI @TMP2")
                 self.appendCode("SUBI @"+exp2)                       # acc = rest - d
-                self.appendCode("JZERO @")                           # if 0 jump_out
+                self.appendCode("JZERO "+str(global_.lineCounter+9)) # if 0 jump_out
                 self.appendCode("STOREI @TMP2")                      # rest = acc
                 self.appendCode("SET 1")                             # result + 1
                 self.appendCode("ADDI @TMP1")
@@ -323,11 +330,13 @@ class TobiqTranslator:
                 self.appendCode("LOADI @TMP2")                       # id = rest
                 self.appendCode("STOREI @"+procName+"_"+identifier)
 
-            else:   #a:=b
-                print("ERROR")
+            else:
+                print("ERROR undefined exp"+str(exp))
+        else:
+            print("ERROR exp wrong type"+str(exp))
 
 
-    def translateConditionMAIN(self,cond,procName,codePointer,jumpF):
+    def translateConditionMAIN(self,cond, procName,codePointer,jumpF):
 
         # Fix that some values are constants
         cond1 = cond[1] if cond[1].isnumeric() else procName+"_"+cond[1]
@@ -343,9 +352,8 @@ class TobiqTranslator:
             self.appendCode("JPOS @"+jumpF)                 # JUMP OUT  # nothing
             self.appendCode("SUB @1")                       #           # acc = 1
             self.appendCode("JPOS @"+jumpF)                 #           # JUMP OUT
-            # appendCode("JUMP @"+jumpT)                    #  True only on this line
             
-        elif cond[0] == "ne":  # TODO set jumps
+        elif cond[0] == "ne":
                                                             # 3 4           # 5 4
             self.appendCode("SET 1")                        # acc = 1       # acc = 1
             self.appendCode("ADD @"+cond1)                  # acc = 4       # acc = 6
@@ -353,28 +361,24 @@ class TobiqTranslator:
             self.appendCode("JZERO @"+jumpF)                # NOT jump_out  # NO action
             self.appendCode("SUB @1")                       # acc = 0       # acc = 1
             self.appendCode("JPOS @"+jumpF)                 #               # NOT jump_out
-            # appendCode("JUMP @"+jumpT)
-            # appendCode(cond)
+            
         elif cond[0] == "gt":   # 
 
             self.appendCode("LOAD @"+cond1)
             self.appendCode("SUB @"+cond2)
             self.appendCode("JPOS @"+jumpF)
-            # appendCode("JUMP @"+jumpT)
-            # appendCode(cond)
 
-        elif cond[0] == "ge":  # TODO set jumps
+        elif cond[0] == "ge":
 
             self.appendCode("SET 1")
             self.appendCode("ADD @"+cond1)
             self.appendCode("SUB @"+cond2)
             self.appendCode("JPOS @"+jumpF)
-            # appendCode("JUMP @"+jumpT)
-            # appendCode(cond)
+            
         else:
             self.appendCode("ERROR "+cond)
 
-    def translateConditionPROC(self,cond,procName,codePointer,jumpF): #TODO
+    def translateConditionPROC(self,cond, procName,codePointer,jumpF):
         
         # Fix that some values are constants
         cond1 = cond[1] if cond[1].isnumeric() else procName+"_"+cond[1]
@@ -383,72 +387,58 @@ class TobiqTranslator:
         self.callbackTable.append([codePointer, global_.lineCounter])
         
         if cond[0] == "eq":
-                                                        # 2 3       # 3 2
-            self.appendCode("SET 1")      # acc = 1   # acc = 1
-            self.appendCode("ADDI @"+cond1)   # acc = 2   # acc = 4
-            self.appendCode("SUBI @"+cond2)   # acc = 0   # acc = 2
+                                                             # 2 3       # 3 2
+            self.appendCode("SET 1")                         # acc = 1   # acc = 1
+            self.appendCode("ADDI @"+cond1)                  # acc = 2   # acc = 4
+            self.appendCode("SUBI @"+cond2)                  # acc = 0   # acc = 2
             self.appendCode("JPOS @"+jumpF)                  # JUMP OUT  # nothing
             self.appendCode("SUBI @1")                       #           # acc = 1
             self.appendCode("JPOS @"+jumpF)                  #           # JUMP OUT
-            # appendCode("JUMP @"+jumpT)                #  True only on this line
             
-        elif cond[0] == "ne":  # TODO set jumps
-                                                        # 3 4           # 5 4
-            self.appendCode("SET 1")      # acc = 1       # acc = 1
-            self.appendCode("ADDI @"+cond1)   # acc = 4       # acc = 6
-            self.appendCode("SUBI @"+cond2)   # acc = 0       # acc = 2
+        elif cond[0] == "ne":
+                                                             # 3 4           # 5 4
+            self.appendCode("SET 1")                         # acc = 1       # acc = 1
+            self.appendCode("ADDI @"+cond1)                  # acc = 4       # acc = 6
+            self.appendCode("SUBI @"+cond2)                  # acc = 0       # acc = 2
             self.appendCode("JZERO @"+jumpF)                 # NOT jump_out  # NO action
             self.appendCode("SUBI @1")                       # acc = 0       # acc = 1
             self.appendCode("JPOS @"+jumpF)                  #               # NOT jump_out
-            # appendCode("JUMP @"+jumpT)
-            # appendCode(cond)
+            
         elif cond[0] == "gt":   # 
 
             self.appendCode("LOADI @"+cond1)
             self.appendCode("SUBI @"+cond2)
             self.appendCode("JPOS @"+jumpF)
-            # appendCode("JUMP @"+jumpT)
-            # appendCode(cond)
 
-        elif cond[0] == "ge":  # TODO set jumps
+        elif cond[0] == "ge":
 
             self.appendCode("SET 1")
             self.appendCode("ADDI @"+cond1)
             self.appendCode("SUBI @"+cond2)
             self.appendCode("JPOS @"+jumpF)
-            # appendCode("JUMP @"+jumpT)
-            # appendCode(cond)
+            
         else:
             self.appendCode("ERROR "+cond)
 
 
-    def getVarNameInProc(self,procName):
+    def getVarNameInProc(self, procName):
         result=[]
         for var in global_.variablesNames:
             if var.startswith(procName):
                 result.append(var)
         return result
 
+
+
     def evalVariables(self):
-        for line_Nr in range(len(self.code)):
-        # for instr in self.code:
-            for var_Nr in range(len(global_.variablesNames)):
-            # for var in global_.variablesNames:
-                if "@"+global_.variablesNames[var_Nr] in self.code[line_Nr]:
-                    # print(global_.variablesNames[i]+">"+str(i))
-                    # print(self.code[line_Nr])
-                    self.code[line_Nr] = self.code[line_Nr].replace("@"+global_.variablesNames[var_Nr],str(var_Nr))
-                    # print(self.code[line_Nr])
+            for lineNr, lineVal in enumerate(self.code):
+                for varNr, varVal in enumerate(global_.variablesNames):
+                    if "@"+varVal in lineVal:
+                        self.code[lineNr] = lineVal.replace("@"+varVal,str(varNr))
+
 
     def evalJumps(self):
-        for line_Nr in range(len(self.code)):
-            for jump_Nr in range(len(self.callbackTable)):
-            # for var in global_.variablesNames:
-                if "@"+self.callbackTable[jump_Nr][0] in self.code[line_Nr]:
-                    #  and\
-                    # self.callbackTable[jump_Nr][1] != null:
-                    # print(global_.variablesNames[i]+">"+str(i))
-                    # print(self.code[line_Nr])
-                    self.code[line_Nr] = self.code[line_Nr].replace(
-                        "@"+self.callbackTable[jump_Nr][0],
-                        str(self.callbackTable[jump_Nr][1]))
+        for lineNr, lineVal in enumerate(self.code):
+            for jumpVal in reversed(self.callbackTable):
+                if "@"+jumpVal[0] in lineVal:
+                    self.code[lineNr] = lineVal.replace("@"+jumpVal[0], str(jumpVal[1]))
