@@ -22,9 +22,12 @@ Aktualnie prawie działa.
   * [X] Create callback table
   * [X] Set all callbacks
   * [X] EVAL JUMPS in Translator
+  * [ ] Debug
+* Clean up:
+  * [ ] Comment output code with [begin inst], [end inst]
+  * [X] Cleanup loops
 * [ ] DEBUG:
   * [ ] ? 
-* [ ] Comment output code with [begin inst], [end inst]
 * [ ] Check if multi works
 * [ ] EXTRA
   * [ ] Check if any multi, div, mod
