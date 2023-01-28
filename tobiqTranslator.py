@@ -18,8 +18,8 @@ class TobiqTranslator:
         self.evalVariables()
         self.evalJumps()
 
-        print("######### callbackTable ##########")
-        print(self.callbackTable)
+        # print("######### callbackTable ##########")
+        # print(self.callbackTable)
 
         return self.code
 
@@ -62,9 +62,7 @@ class TobiqTranslator:
             if inst[0] == "ASSIGN":
                 self.comments += " " + inst[1]+" := "+str(inst[2])
                 if procName=="MAIN":
-                    self.translateAssignMAIN(inst[1],inst[2], procName)
-                else:
-                    self.translateAssignPROC(inst[1],inst[2], procName)
+                    self.translateAssign(inst[1],inst[2], procName)
 
             elif inst[0] == "IF":
 
@@ -74,8 +72,7 @@ class TobiqTranslator:
 
                 self.comments += " if"
 
-                conEval = self.translateConditionMAIN if procName=="MAIN" else self.translateConditionPROC
-                conEval(inst[1], procName,"IF+",jumpF)
+                self.translateCondition(inst[1], procName,"IF+",jumpF)
                 
                 self.translateBlock(inst[2], procName, procNameVariables)
                 
@@ -94,8 +91,7 @@ class TobiqTranslator:
 
                 self.comments += " ifelse"
 
-                conEval = self.translateConditionMAIN if procName=="MAIN" else self.translateConditionPROC
-                conEval(inst[1], procName,"IFELSE+",jumpF)
+                self.translateCondition(inst[1], procName,"IFELSE+",jumpF)
                 
             #### TRUE ####
 
@@ -127,8 +123,7 @@ class TobiqTranslator:
 
                 self.comments += " while"
 
-                conEval = self.translateConditionMAIN if procName=="MAIN" else self.translateConditionPROC
-                conEval(inst[1], procName,"WHILE+",jumpOut)
+                self.translateCondition(inst[1], procName,"WHILE+",jumpOut)
 
                 self.translateBlock(inst[2], procName, procNameVariables)
 
@@ -148,8 +143,7 @@ class TobiqTranslator:
 
                 self.translateBlock(inst[2], procName, procNameVariables)
 
-                conEval = self.translateConditionMAIN if procName=="MAIN" else self.translateConditionPROC
-                conEval(inst[1], procName,"REPEAT+",jumpBack)
+                self.translateCondition(inst[1], procName,"REPEAT+",jumpBack)
 
 
                 self.appendCode("JUMP @"+jumpOut)
@@ -199,76 +193,67 @@ class TobiqTranslator:
                 print("ERROR "+inst)
 
 
-    def translateAssignMAIN(self,identifier,exp, procName):
+    def translateAssign(self,identifier,exp, procName):
 
-        result = procName+"_"+identifier
 
-        if exp[0].isnumeric():
+        if procName+"_"+identifier in global_.variablesNames:
+            resultEND = "  @"+procName+"_"+identifier
+        else:
+            resultEND = "I @"+procName+"^"+identifier
+
+        if exp[0].isnumeric():                          #### TODO should be able to colapse into one 
             self.appendCode("SET "+exp)
-            self.appendCode("STORE  @"+result)
+            self.appendCode("STORE"+resultEND)
 
         elif isinstance(exp, str):
-            self.appendCode("LOAD   @"+procName+"_"+exp)
-            self.appendCode("STORE  @"+result)
+            if procName+"_"+exp in global_.variablesNames:
+                self.appendCode("LOAD   @"+procName+"_"+exp)
+            else:
+                self.appendCode("LOADI  @"+procName+"^"+exp)                
+            self.appendCode("STORE"+resultEND)
 
         elif isinstance(exp, list):
-            exp1 = exp[1] if exp[1].isnumeric() else procName+"_"+exp[1]
-            exp2 = exp[2] if exp[2].isnumeric() else procName+"_"+exp[2]
+            exp1END = self.getInstrSufixForVar(exp[1],procName)
+            exp2END = self.getInstrSufixForVar(exp[2],procName)
 
             if exp[0] == "add": 
-                self.appendCode("LOAD   @"+exp1)
-                self.appendCode("ADD    @"+exp2)
-                self.appendCode("STORE  @"+result)
+                self.appendCode("LOAD"+exp1END)
+                self.appendCode("ADD"+exp2END)
+                self.appendCode("STORE"+resultEND)
 
             elif exp[0] == "sub":
-                self.appendCode("LOAD   @"+exp1)
-                self.appendCode("SUB    @"+exp2)
-                self.appendCode("STORE  @"+result)
+                self.appendCode("LOAD"+exp1END)
+                self.appendCode("SUB"+exp2END)
+                self.appendCode("STORE"+resultEND)
 
             elif exp[0] == "mul": # multi p q
                 
                 self.appendCode("SET    0")                                # acc = 0
                 self.appendCode("STORE  @TMP2")                          # m = acc
-                self.appendCode("LOAD   @"+exp1)                          # acc = p
+                self.appendCode("LOAD"+exp1END)                          # acc = p
                                                                         # n = acc
                                                                         # should it be a line?
                 self.appendCode("JZERO  "+str(global_.lineCounter+9))    # if acc = 0 break
                 self.appendCode("SUB    @1")                               # acc -1
                 self.appendCode("STORE  @TMP1")                          # n = acc
                 self.appendCode("LOAD   @TMP2")                           # acc = m
-                self.appendCode("ADD    @"+exp2)                          # acc + q
+                self.appendCode("ADD"+exp2END)                          # acc + q
                 self.appendCode("STORE  @TMP2")                          # m = acc
                 self.appendCode("LOAD   @TMP1")                           # acc = n
                 self.appendCode("JPOS   "+str(global_.lineCounter-6))    # jump back if positive
                 self.appendCode("LOAD   @TMP2")                           # acc = m
-                self.appendCode("STORE  @"+result)      # id = acc
+                self.appendCode("STORE"+resultEND)                                               # id = acc
 
             elif exp[0] == "div":# c = a div b
 
-                # self.appendCode("SET    0")                             # c = 0
-                # self.appendCode("STORE  @"+result)
-                # self.appendCode("LOAD   @"+exp2)                        # if b = 0
-                # self.appendCode("JZERO  "+str(global_.lineCounter+7+5)) #
-                # self.appendCode("LOAD   @"+exp1)                        # if a = 0
-                # self.appendCode("JZERO  "+str(global_.lineCounter+7+3)) #
-                # self.appendCode("ADD    @1")                            # trick add 1 for evaulation a>b
-                # self.appendCode("SUB    @"+exp2)
-                # self.appendCode("JZERO  "+str(global_.lineCounter+7))   # if !(a > b)
-                # self.appendCode("STORE  @TMP1")
-                # self.appendCode("LOAD   @"+result)                      # c++
-                # self.appendCode("ADD    @1")
-                # self.appendCode("STORE  @"+result)
-                # self.appendCode("LOAD   @TMP1")
-                # self.appendCode("JUMP   "+str(global_.lineCounter-7)+"  [end div]")   # back jump
-
                 self.appendCode("SET    0")                             # c = 0
                 self.appendCode("STORE  @TMP2")
-                self.appendCode("LOAD   @"+exp2)                        # if b = 0
+                self.appendCode("LOAD"+exp2END)                        # if b = 0
                 self.appendCode("JZERO  "+str(global_.lineCounter+7+5)) #
-                self.appendCode("LOAD   @"+exp1)                        # if a = 0
+                self.appendCode("LOAD"+exp1END)                        # if a = 0
                 self.appendCode("JZERO  "+str(global_.lineCounter+7+3)) #
                 self.appendCode("ADD    @1")                            # trick add 1 for evaulation a>b
-                self.appendCode("SUB    @"+exp2)
+                self.appendCode("SUB"+exp2END)
                 self.appendCode("JZERO  "+str(global_.lineCounter+7))   # if !(a > b)
                 self.appendCode("STORE  @TMP1")
                 self.appendCode("LOAD   @TMP2")                      # c++
@@ -277,127 +262,40 @@ class TobiqTranslator:
                 self.appendCode("LOAD   @TMP1")
                 self.appendCode("JUMP   "+str(global_.lineCounter-7)+"  [end div]")   # back jump
                 self.appendCode("LOAD   @TMP2")
-                self.appendCode("STORE  @"+result)
+                self.appendCode("STORE"+resultEND)
 
             elif exp[0] == "mod": # c mod a b   # first div then return rest
 
                 self.appendCode("SET    0")                             # c = 0
                 self.appendCode("STORE  @TMP2")
-                self.appendCode("LOAD   @"+exp2)                        # if b = 0
-                self.appendCode("JZERO  "+str(global_.lineCounter+7+5)) #
-                self.appendCode("LOAD   @"+exp1)                        # if a = 0
-                self.appendCode("JZERO  "+str(global_.lineCounter+7+3)) #
+                self.appendCode("LOAD"+exp2END)                        # if b = 0
+                self.appendCode("JZERO  "+str(global_.lineCounter+7+6)) #
+                self.appendCode("LOAD"+exp1END)                        # if a = 0
+                self.appendCode("JZERO  "+str(global_.lineCounter+7+4)) #
                 self.appendCode("ADD    @1")                            # trick add 1 for evaulation a>b
-                self.appendCode("SUB    @"+exp2)
+                self.appendCode("STORE  @TMP1")                         # in case a % b and  b>a
+                self.appendCode("SUB"+exp2END)
                 self.appendCode("JZERO  "+str(global_.lineCounter+7))   # if !(a > b)
                 self.appendCode("STORE  @TMP1")
-                self.appendCode("LOAD   @TMP2")                      # c++
+                self.appendCode("LOAD   @TMP2")                             # c++
                 self.appendCode("ADD    @1")
                 self.appendCode("STORE  @TMP2")
                 self.appendCode("LOAD   @TMP1")
                 self.appendCode("JUMP   "+str(global_.lineCounter-7)+"  [end div]")   # back jump
                 self.appendCode("LOAD   @TMP1")
                 self.appendCode("SUB    @1")
-                self.appendCode("STORE  @"+result)
+                self.appendCode("STORE"+resultEND)
 
             else:
                 print("ERROR undefined exp"+str(exp))
         else:
             print("ERROR exp wrong type"+str(exp))
 
-
-    def translateAssignPROC(self,identifier,exp, procName):
-
-        if exp[0].isnumeric():
-            self.appendCode("SET "+exp)
-            self.appendCode("STOREI @"+procName+"_"+identifier)
-        elif isinstance(exp, str):
-            self.appendCode("LOADI @"+procName+"_"+exp)
-            self.appendCode("STOREI @"+procName+"_"+identifier)
-        elif isinstance(exp, list):
-            exp1 = exp[1] if exp[1].isnumeric() else procName+"_"+exp[1]
-            exp2 = exp[2] if exp[2].isnumeric() else procName+"_"+exp[2]
-
-            if exp[0] == "add":
-                self.appendCode("LOADI @"+exp1)
-                self.appendCode("ADDI @"+exp2)
-                self.appendCode("STOREI @"+procName+"_"+identifier)
-
-            elif exp[0] == "sub":
-                self.appendCode("LOADI @"+exp1)
-                self.appendCode("SUBI @"+exp2)
-                self.appendCode("STOREI @"+procName+"_"+identifier)
-
-            elif exp[0] == "mul": # multi p q
-                
-                self.appendCode("SET    0")                            # acc = 0
-                self.appendCode("STOREI @TMP2")                     # m = acc
-                self.appendCode("LOADI @"+exp1)                     # acc = p
-                                                                    # n = acc
-                                                                    # should it be a line?
-                                                                    # if acc = 0 break
-                self.appendCode("JZERO  "+str(global_.lineCounter+9))
-                self.appendCode("SUBI @1")                           #   acc -1
-                self.appendCode("STOREI @TMP1")                      #   n = acc
-                self.appendCode("LOADI @TMP2")                       # 	acc = m
-                self.appendCode("ADDI @"+exp2)                       # 	acc + q
-                self.appendCode("STOREI @TMP2")                      # 	m = acc
-                self.appendCode("LOADI @TMP1")                       # 	acc = n
-                self.appendCode("JPOS   "+str(global_.lineCounter-6)) # 	jump back if
-                self.appendCode("LOADI @TMP2")                       # acc = m
-                self.appendCode("STOREI @"+procName+"_"+identifier)  # id = acc
-
-            elif exp[0] == "div":# div p d
-
-                self.appendCode("SET    0")                                # result = 0
-                self.appendCode("STOREI @TMP1")
-                self.appendCode("LOADI @"+exp2)                         # if d = 0 jump_out
-                self.appendCode("JZERO  "+str(global_.lineCounter+13))   # jump out
-                self.appendCode("LOADI @"+exp1)                         # rest = p
-                self.appendCode("STOREI @TMP2")
-                self.appendCode("SUBI @"+exp2)                          # acc = rest - d
-                self.appendCode("JZERO  "+str(global_.lineCounter+9))    # if 0 jump_out
-                self.appendCode("STOREI @TMP2")                         # rest = acc
-                self.appendCode("SET    1")                                # result + 1
-                self.appendCode("ADDI @TMP1")
-                self.appendCode("STOREI @TMP1")
-                self.appendCode("LOADI @TMP2")                          # acc = rest - d
-                self.appendCode("SUBI @"+exp2)
-                self.appendCode("JUMP "+str(global_.lineCounter-7))     # jump back to if
-                self.appendCode("LOADI @TMP1")                          # id = result
-                self.appendCode("STOREI @"+procName+"_"+identifier)
-
-            elif exp[0] == "mod": # mod p d
-
-                self.appendCode("SET    0")                                # result = 0
-                self.appendCode("STOREI @TMP1")
-                self.appendCode("LOADI @"+exp2)                         # if d = 0 jump_out
-                self.appendCode("JZERO  "+str(global_.lineCounter+13))   # jump out
-                self.appendCode("LOADI @"+exp1)                         # rest = p
-                self.appendCode("STOREI @TMP2")
-                self.appendCode("SUBI @"+exp2)                          # acc = rest - d
-                self.appendCode("JZERO  "+str(global_.lineCounter+9))    # if 0 jump_out
-                self.appendCode("STOREI @TMP2")                         # rest = acc
-                self.appendCode("SET    1")                                # result + 1
-                self.appendCode("ADDI @TMP1")
-                self.appendCode("STOREI @TMP1")
-                self.appendCode("LOADI @TMP2")                          # acc = rest - d
-                self.appendCode("SUBI @"+exp2)
-                self.appendCode("JUMP "+str(global_.lineCounter-7))     #jump back to if
-                self.appendCode("LOADI @TMP2")                          # id = rest
-                self.appendCode("STOREI @"+procName+"_"+identifier)
-
-            else:
-                print("ERROR undefined exp"+str(exp))
-        else:
-            print("ERROR exp wrong type"+str(exp))
-
-
-    def translateConditionMAIN(self,cond, procName,codePointer,jumpF):
+    def translateCondition(self,cond, procName,codePointer,jumpF):
 
         # Fix that some values are constants
-        cond1 = cond[1] if cond[1].isnumeric() else procName+"_"+cond[1]
-        cond2 = cond[2] if cond[2].isnumeric() else procName+"_"+cond[2]        
+        cond1END = self.getInstrSufixForVar(cond[1],procName)
+        cond2END = self.getInstrSufixForVar(cond[2],procName)
 
         self.callbackTable.append([codePointer, global_.lineCounter])
 
@@ -406,16 +304,16 @@ class TobiqTranslator:
         if cond[0] == "eq":
                                                                 # 3 4           # 5 4
             self.appendCode("SET    1")                         # acc = 1       # acc = 1
-            self.appendCode("ADD    @"+cond1)                   # acc = 4       # acc = 6
-            self.appendCode("SUB    @"+cond2)                   # acc = 0       # acc = 2
+            self.appendCode("ADD"+cond1END)                   # acc = 4       # acc = 6
+            self.appendCode("SUB"+cond2END)                     # acc = 0       # acc = 2
             self.appendCode("JZERO  @"+jumpF)                   # NOT jump_out  # NO action
             self.appendCode("SUB    @1")                        # acc = 0       # acc = 1
             self.appendCode("JPOS   @"+jumpF)                   #               # NOT jump_out
         elif cond[0] == "ne":
 
             self.appendCode("SET    1")                             # acc = 1       # acc = 1
-            self.appendCode("ADD    @"+cond1)                       # acc = 4       # acc = 6
-            self.appendCode("SUB    @"+cond2)                       # acc = 0       # acc = 2
+            self.appendCode("ADD"+cond1END)                         # acc = 4       # acc = 6
+            self.appendCode("SUB"+cond2END)                         # acc = 0       # acc = 2
             self.appendCode("JZERO  "+str(global_.lineCounter+4))   # NOT jump_out  # NO action
             self.appendCode("SUB    @1")                            # acc = 0       # acc = 1
             self.appendCode("JPOS   "+str(global_.lineCounter+2))   #               # NOT jump_out
@@ -423,60 +321,18 @@ class TobiqTranslator:
 
         elif cond[0] == "gt":   # a > b
 
-            self.appendCode("LOAD   @"+cond1)
-            self.appendCode("SUB    @"+cond2)
+            self.appendCode("LOAD"+cond1END)  
+            self.appendCode("SUB"+cond2END)  
             self.appendCode("JPOS   "+str(global_.lineCounter+2))
             self.appendCode("JUMP   @"+jumpF)
 
         elif cond[0] == "ge":
 
             self.appendCode("SET    1")
-            self.appendCode("ADD    @"+cond1)
-            self.appendCode("SUB    @"+cond2)
+            self.appendCode("ADD"+cond1END)  
+            self.appendCode("SUB"+cond2END)  
             self.appendCode("JPOS   "+str(global_.lineCounter+2))
             self.appendCode("JUMP   @"+jumpF)
-            
-        else:
-            self.appendCode("ERROR "+cond)
-
-    def translateConditionPROC(self,cond, procName,codePointer,jumpF):
-        
-        # Fix that some values are constants
-        cond1 = cond[1] if cond[1].isnumeric() else procName+"_"+cond[1]
-        cond2 = cond[2] if cond[2].isnumeric() else procName+"_"+cond[2]     
-
-        self.callbackTable.append([codePointer, global_.lineCounter])
-        
-        if cond[0] == "eq":
-                                                             # 2 3       # 3 2
-            self.appendCode("SET    1")                         # acc = 1   # acc = 1
-            self.appendCode("ADDI @"+cond1)                  # acc = 2   # acc = 4
-            self.appendCode("SUBI @"+cond2)                  # acc = 0   # acc = 2
-            self.appendCode("JPOS   @"+jumpF)                  # JUMP OUT  # nothing
-            self.appendCode("SUBI @1")                       #           # acc = 1
-            self.appendCode("JPOS   @"+jumpF)                  #           # JUMP OUT
-            
-        elif cond[0] == "ne":
-                                                             # 3 4           # 5 4
-            self.appendCode("SET    1")                         # acc = 1       # acc = 1
-            self.appendCode("ADDI @"+cond1)                  # acc = 4       # acc = 6
-            self.appendCode("SUBI @"+cond2)                  # acc = 0       # acc = 2
-            self.appendCode("JZERO  @"+jumpF)                 # NOT jump_out  # NO action
-            self.appendCode("SUBI @1")                       # acc = 0       # acc = 1
-            self.appendCode("JPOS   @"+jumpF)                  #               # NOT jump_out
-            
-        elif cond[0] == "gt":   # 
-
-            self.appendCode("LOADI @"+cond1)
-            self.appendCode("SUBI @"+cond2)
-            self.appendCode("JPOS   @"+jumpF)
-
-        elif cond[0] == "ge":
-
-            self.appendCode("SET    1")
-            self.appendCode("ADDI @"+cond1)
-            self.appendCode("SUBI @"+cond2)
-            self.appendCode("JPOS   @"+jumpF)
             
         else:
             self.appendCode("ERROR "+cond)
@@ -489,6 +345,15 @@ class TobiqTranslator:
                 result.append(var)
         return result
 
+    def getInstrSufixForVar(self, varName, procName):
+        if varName.isnumeric():
+            expEND = "   @"+varName
+        elif procName+"_"+varName in global_.variablesNames:
+            expEND = "   @"+procName+"_"+varName
+        else:
+            expEND = "I  @"+procName+"^"+varName
+
+        return expEND
 
     def evalVariables(self):
             for lineNr, lineVal in enumerate(self.code):

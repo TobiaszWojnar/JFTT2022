@@ -4,5 +4,5 @@ BEGIN
     READ a;
     READ b;
     WRITE a;
-    WRITE a;
+    WRITE b;
 END

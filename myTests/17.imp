@@ -2,7 +2,7 @@ PROGRAM IS
 VAR n
 BEGIN
     READ n;
-	IF n!=1 THEN 
+	IF n=1 THEN 
 	    WRITE 1;
     ELSE 
 	    WRITE 0;

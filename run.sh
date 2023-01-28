@@ -1,1 +1,1 @@
-python3 tobiqCompilator.py input_codes/example2.imp  smieci
+clear && python3 tobiqCompilator.py myTests/19.imp smieci && ./maszyna_wirtualna_popr/maszyna-wirtualna-cln smieci

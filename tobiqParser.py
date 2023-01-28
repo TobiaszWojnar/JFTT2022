@@ -37,8 +37,14 @@ class TobiqParser(Parser):
         global_.variableInit.append(True)
 
         for i in range(len(global_.variablesNames)):
-            if not '_' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
-                global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
+            if not ('_' in global_.variablesNames[i] or '^' in global_.variablesNames[i]): # if varName one word concat name of procedure in front
+                # external value
+                if global_.variablesNames[i] in p[2][1]:
+                    global_.variablesNames[i] = global_.proceduresNames[-1][0] + "^" + global_.variablesNames[i]
+                # internal value
+                else: 
+                    global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
+
         procedureBody = [["PROCEDURE", p[2][0], p[7]]]
         if p[0] != None:
             return p[0] + procedureBody# p[5],
@@ -58,8 +64,14 @@ class TobiqParser(Parser):
         # self.isInitTrue = True
 
         for i in range(len(global_.variablesNames)):
-            if not '_' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
-                global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
+            if not ('_' in global_.variablesNames[i] or '^' in global_.variablesNames[i]): # if varName one word concat name of procedure in front
+                # external value
+                if global_.variablesNames[i] in p[2][1]:
+                    global_.variablesNames[i] = global_.proceduresNames[-1][0] + "^" + global_.variablesNames[i]
+                # internal value
+                else: 
+                    global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
+
         procedureBody = [["PROCEDURE", p[2][0], p[5]]]
         if p[0] != None:
             return p[0]+procedureBody
@@ -80,8 +92,8 @@ class TobiqParser(Parser):
         global_.proceduresNames.append(["MAIN"])
         global_.variableInit.append(True)
         for i in range(len(global_.variablesNames)):
-            if not '_' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
-                global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
+            if not ('_' in global_.variablesNames[i] or '^' in global_.variablesNames[i]): # if varName one word concat name of procedure in front
+               global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
         return [["MAIN", p[5]]]
 
     @_('PROGRAM IS BEGIN commands END')
@@ -89,8 +101,8 @@ class TobiqParser(Parser):
         global_.proceduresNames.append(["MAIN"])
         global_.variableInit.append(True)
         for i in range(len(global_.variablesNames)):
-            if not '_' in global_.variablesNames[i]: # if varName one word concat name of procedure in front
-                global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
+            if not ('_' in global_.variablesNames[i] or '^' in global_.variablesNames[i]): # if varName one word concat name of procedure in front
+               global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
         return [["MAIN" , p[3]]]
 
     @_('commands command')
