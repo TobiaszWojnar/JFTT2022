@@ -245,8 +245,24 @@ class TobiqTranslator:
 
             elif exp[0] == "div":# c = a div b
 
+                # self.appendCode("SET    0")                             # c = 0
+                # self.appendCode("STORE  @"+result)
+                # self.appendCode("LOAD   @"+exp2)                        # if b = 0
+                # self.appendCode("JZERO  "+str(global_.lineCounter+7+5)) #
+                # self.appendCode("LOAD   @"+exp1)                        # if a = 0
+                # self.appendCode("JZERO  "+str(global_.lineCounter+7+3)) #
+                # self.appendCode("ADD    @1")                            # trick add 1 for evaulation a>b
+                # self.appendCode("SUB    @"+exp2)
+                # self.appendCode("JZERO  "+str(global_.lineCounter+7))   # if !(a > b)
+                # self.appendCode("STORE  @TMP1")
+                # self.appendCode("LOAD   @"+result)                      # c++
+                # self.appendCode("ADD    @1")
+                # self.appendCode("STORE  @"+result)
+                # self.appendCode("LOAD   @TMP1")
+                # self.appendCode("JUMP   "+str(global_.lineCounter-7)+"  [end div]")   # back jump
+
                 self.appendCode("SET    0")                             # c = 0
-                self.appendCode("STORE  @"+result)
+                self.appendCode("STORE  @TMP2")
                 self.appendCode("LOAD   @"+exp2)                        # if b = 0
                 self.appendCode("JZERO  "+str(global_.lineCounter+7+5)) #
                 self.appendCode("LOAD   @"+exp1)                        # if a = 0
@@ -255,30 +271,31 @@ class TobiqTranslator:
                 self.appendCode("SUB    @"+exp2)
                 self.appendCode("JZERO  "+str(global_.lineCounter+7))   # if !(a > b)
                 self.appendCode("STORE  @TMP1")
-                self.appendCode("LOAD   @"+result)                      # c++
+                self.appendCode("LOAD   @TMP2")                      # c++
                 self.appendCode("ADD    @1")
-                self.appendCode("STORE  @"+result)
+                self.appendCode("STORE  @TMP2")
                 self.appendCode("LOAD   @TMP1")
                 self.appendCode("JUMP   "+str(global_.lineCounter-7)+"  [end div]")   # back jump
+                self.appendCode("LOAD   @TMP2")
+                self.appendCode("STORE  @"+result)
 
             elif exp[0] == "mod": # c mod a b   # first div then return rest
 
                 self.appendCode("SET    0")                             # c = 0
-                self.appendCode("STORE  @"+result)
+                self.appendCode("STORE  @TMP2")
                 self.appendCode("LOAD   @"+exp2)                        # if b = 0
-                self.appendCode("JZERO  "+str(global_.lineCounter+7+6)) #
+                self.appendCode("JZERO  "+str(global_.lineCounter+7+5)) #
                 self.appendCode("LOAD   @"+exp1)                        # if a = 0
-                self.appendCode("JZERO  "+str(global_.lineCounter+7+4)) #
+                self.appendCode("JZERO  "+str(global_.lineCounter+7+3)) #
                 self.appendCode("ADD    @1")                            # trick add 1 for evaulation a>b
-                self.appendCode("STORE  @TMP1")                         # for a % b where a < b
                 self.appendCode("SUB    @"+exp2)
                 self.appendCode("JZERO  "+str(global_.lineCounter+7))   # if !(a > b)
                 self.appendCode("STORE  @TMP1")
-                self.appendCode("LOAD   @"+result)                      # c++
+                self.appendCode("LOAD   @TMP2")                      # c++
                 self.appendCode("ADD    @1")
-                self.appendCode("STORE  @"+result)
+                self.appendCode("STORE  @TMP2")
                 self.appendCode("LOAD   @TMP1")
-                self.appendCode("JUMP   "+str(global_.lineCounter-7))   # back jump
+                self.appendCode("JUMP   "+str(global_.lineCounter-7)+"  [end div]")   # back jump
                 self.appendCode("LOAD   @TMP1")
                 self.appendCode("SUB    @1")
                 self.appendCode("STORE  @"+result)

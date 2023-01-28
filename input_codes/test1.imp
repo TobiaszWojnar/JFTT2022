@@ -25,8 +25,8 @@ BEGIN
     d := 4294967300;
 
     n := a * b;
-    n := n * c;
-    n := n * d;
+    [n := n * c;]
+    [n := n * d;]
 
     dzielnik := 2;
     m := dzielnik * dzielnik;
