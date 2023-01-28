@@ -1,0 +1,9 @@
+PROGRAM IS
+VAR n
+BEGIN
+    READ n;
+    WHILE n>7 DO
+        WRITE n;
+        n:=n-1;
+    ENDWHILE
+END

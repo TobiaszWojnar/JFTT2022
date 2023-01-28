@@ -1,0 +1,10 @@
+PROGRAM IS
+VAR a, b, c
+BEGIN
+    READ a;
+    READ b;
+    c := a*b;
+    WRITE c;
+    c := b*a;
+    WRITE c;
+END

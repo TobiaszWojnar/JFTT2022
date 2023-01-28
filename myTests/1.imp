@@ -1,0 +1,6 @@
+PROGRAM IS
+VAR a
+BEGIN
+  READ a;
+  WRITE a;
+END
