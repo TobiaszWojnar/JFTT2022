@@ -3,12 +3,9 @@ from tobiqLexer import TobiqLexer
 from tobiqParser import TobiqParser
 from tobiqTranslator import TobiqTranslator
 import tobiqContext_ as global_
+from tobiqExceptions import *
 
 def main():
-
-    # if len(sys.argv)!=3:
-    #     print("io error")
-    #     return
 
     lex = TobiqLexer()
     pars = TobiqParser()
@@ -16,28 +13,36 @@ def main():
     with open(sys.argv[1]) as in_f:
         text = in_f.read()
 
-    pars.parse(lex.tokenize(text))
+    try:
+        pars.parse(lex.tokenize(text))
 
-    print(global_.instructions)
-    print(global_.variablesNames)
-    print(global_.proceduresNames)
+    # DEBUG
+        if len(sys.argv) > 2: 
+            print(global_.instructions)
+            print(global_.variablesNames)
+            print(global_.proceduresNames)
+            with open(sys.argv[3]+".log", 'w') as out_f:
+                for line in global_.instructions:
+                    print(line, file=out_f)
 
-    with open(sys.argv[2]+".log", 'w') as out_f:
-        for line in global_.instructions:
-            print(line, file=out_f)
+        trans = TobiqTranslator()
+        trans.translate()
 
-    trans = TobiqTranslator()
-    trans.translate()
+        with open(sys.argv[2], 'w') as out_f:
+            for line in trans.code:
+                print(line, file=out_f)
+                # print(line)      # for debug
 
-    with open(sys.argv[2], 'w') as out_f:
-        for line in trans.code:
-            print(line, file=out_f)
-            print(line)      
-    
-    # with open(sys.argv[2], 'w') as out_f:
-    #     for line in pars:
-    #     for line in code_gen.code:
-    #         print(line, file=out_f)
+    except InvalidArgumentsNumberException as e: # work on python 3.x
+        print(str(e))
+    except UndeclaredProcedureException as e:
+        print(str(e))
+    except UndeclaredVariableException as e:
+        print(str(e))
+    except SecondaryVariableDeclarationException as e:
+        print(str(e))
+    except UninitializedUsageException as e:
+        print(str(e))
 
 if __name__ == "__main__":
     main()

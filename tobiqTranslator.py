@@ -61,8 +61,7 @@ class TobiqTranslator:
         for inst in block:
             if inst[0] == "ASSIGN":
                 self.comments += " " + inst[1]+" := "+str(inst[2])
-                if procName=="MAIN":
-                    self.translateAssign(inst[1],inst[2], procName)
+                self.translateAssign(inst[1],inst[2], procName)
 
             elif inst[0] == "IF":
 
@@ -152,41 +151,43 @@ class TobiqTranslator:
                     if jumpVal[0] == jumpOut:
                         self.callbackTable[jumpNr][1] = global_.lineCounter
             
-            elif inst[0] == "PROC": # DONE (hope so)
+            elif inst[0] == "PROC":
                 self.comments += " call proc $"+inst[1]
-                for i in range(len(inst[2])):
-                    self.appendCode("SET @"+procName+"_"+inst[2][i])
-                    self.appendCode("STORE  @"+procNameVariables[i])
-                self.appendCode("SET "+str(global_.lineCounter+2)) #TODO should it be 2 or 3
+
+                thisProcNameVariables = self.getVarNameInProc(inst[1])
+
+                for i in range(len(inst[2])):################## FIXUP
+                    if procName+"_"+inst[2][i] in global_.variablesNames: 
+                        self.appendCode("SET @"+procName+"_"+inst[2][i])
+                    else:
+                        self.appendCode("LOAD @"+procName+"^"+inst[2][i]) ### TODO?
+                    self.appendCode("STORE @"+thisProcNameVariables[i])
+
+                self.appendCode("SET "+str(global_.lineCounter+3))
                 self.appendCode("STORE  @"+inst[1]+"_JUMPBACK")
                 self.appendCode("JUMP @"+inst[1])
-
-                # self.translateBlock(inst[2], procName, procNameVariables)
-                # copy values back
 
             elif inst[0] == "READ": 
 
                 self.comments += " read"
 
-                if procName=="MAIN":
+                if procName+"_"+inst[1] in global_.variablesNames:
                     self.appendCode("GET @"+procName+"_"+inst[1])
                 else:
-                    self.appendCode("GET @"+procName+"_"+inst[1])#TODO if not in main
+                    self.appendCode("GET 0")
+                    self.appendCode("STOREI @"+procName+"^"+inst[1])
+
 
             elif inst[0] == "WRITE":
 
                 self.comments += " write"
 
                 if inst[1].isnumeric():
-                    valToWrite = inst[1]
+                    self.appendCode("PUT @"+ inst[1])
+                elif procName+"_"+inst[1] in global_.variablesNames:
+                    self.appendCode("PUT @"+procName+"_"+inst[1])
                 else:
-                    valToWrite = procName+"_"+inst[1]
-
-
-                if procName=="MAIN":
-                    self.appendCode("PUT @"+valToWrite)
-                else:
-                    self.appendCode("LOADI @"+valToWrite)
+                    self.appendCode("LOADI @"+procName+"^"+inst[1])
                     self.appendCode("PUT 0")
 
             else:

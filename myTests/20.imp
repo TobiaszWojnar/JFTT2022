@@ -1,0 +1,16 @@
+PROCEDURE swap(a,b) IS
+VAR c
+BEGIN
+  c:=a;
+  a:=b;
+  b:=c;
+END
+
+PROGRAM IS
+VAR a,b
+BEGIN
+  READ a;
+  READ b;
+  swap(a,b);
+  WRITE a;
+END

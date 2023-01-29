@@ -1,6 +1,7 @@
 from sly import Parser
 from tobiqLexer import TobiqLexer
 import tobiqContext_ as global_
+from tobiqExceptions import *
 
 
 class TobiqParser(Parser):    
@@ -30,7 +31,7 @@ class TobiqParser(Parser):
     def procedures(self, p):
         duplicates = duplicatesFinder(p[2][1]+p[5])
         if len(duplicates) > 0:
-            print("ERROR: Secondary declaration of variables = ", duplicates)
+            raise SecondaryVariableDeclarationException(duplicates,p[2][0])
 
         global_.proceduresNames.append([p[2][0],len(p[2][1])])
         global_.variablesNames.append("JUMPBACK")
@@ -55,7 +56,7 @@ class TobiqParser(Parser):
     def procedures(self, p):
         duplicates = duplicatesFinder(p[2][1])
         if len(duplicates) > 0:
-            print("ERROR: Secondary declaration of variables = ", duplicates)
+            raise SecondaryVariableDeclarationException(duplicates,p[2][0])
 
         global_.proceduresNames.append([p[2][0],len(p[2][1])])
         global_.variablesNames.append("JUMPBACK")
@@ -87,7 +88,7 @@ class TobiqParser(Parser):
     def main(self, p):
         duplicates = duplicatesFinder(p[3])
         if len(duplicates) > 0:
-            print("ERROR: Secondary declaration of variables = ", duplicates)
+            raise SecondaryVariableDeclarationException(duplicates,p[2][0])
 
         global_.proceduresNames.append(["MAIN"])
         global_.variableInit.append(True)
@@ -127,11 +128,17 @@ class TobiqParser(Parser):
 
     @_('IF condition THEN commands ELSE commands ENDIF')
     def command(self, p):
-        return ["IFELSE", p[1], p[3], p[5]]
+        try:
+            return ["IFELSE", p[1], p[3], p[5]]
+        except UninitializedUsageException as e:
+            print(str(e))
 
     @_('IF condition THEN commands ENDIF')
     def command(self, p):
-        return ["IF", p[1], p[3]]
+        try:
+            return ["IF", p[1], p[3]]
+        except UninitializedUsageException as e:
+            print(str(e))
 
     @_('WHILE condition DO commands ENDWHILE')
     def command(self, p):
@@ -148,16 +155,14 @@ class TobiqParser(Parser):
             if p[0][0] == i[0]:
                 fuckup = False
         if fuckup:
-            print("ERROR. Undeclared procedure = ", p[0][0], " in line ", global_.lineNumber)
-            return SyntaxError
+            raise InvalidArgumentsNumberException(p[0][0],global_.__lineNumber)
 
         fuckup = True
         for i in global_.proceduresNames:
             if p[0][0] == i[0] and len(p[0][1]) == i[1]:
                 fuckup = False
         if fuckup:
-            print("ERROR. Wrong number of arguments ", p[0][0], " ", p[0][1], " in line ", global_.lineNumber)
-            return SyntaxError
+            raise InvalidArgumentsNumberException(p[0][0],p[0][1],global_.__lineNumber)
         else:
             return ["PROC", p[0][0], p[0][1]]
 
@@ -251,8 +256,7 @@ class TobiqParser(Parser):
     @_('IDENTIFIER')
     def value(self, p):
         if not p[0] in global_.variablesNames:
-            print("ERROR. Undeclared variable = ", p[0], " in line ", global_.lineNumber)
-            return SyntaxError
+            raise UndeclaredVariableException(p[0],global_.__lineNumber)
         else:
             return p[0]
 
@@ -275,5 +279,4 @@ def initChecker(identifier):
     if identifier.isnumeric() or global_.variableInit[global_.variablesNames.index(identifier)]:
         return True
     else:
-        print("ERROR. Uninitialized Usage = ", identifier, " in line ", global_.lineNumber)
-        return NameError
+        raise UninitializedUsageException(identifier,global_.__lineNumber)

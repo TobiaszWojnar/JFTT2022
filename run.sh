@@ -1,1 +1,1 @@
-clear && python3 tobiqCompilator.py myTests/19.imp smieci && ./maszyna_wirtualna_popr/maszyna-wirtualna-cln smieci
+clear && ./kompilator input_codes/test2d.imp smieci && ./maszyna_wirtualna_popr/maszyna-wirtualna-cln smieci
