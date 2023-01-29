@@ -79,7 +79,6 @@ class TobiqParser(Parser):
 
     @_('empty')
     def procedures(self, p):
-        # self.isInitTrue = False
         return
 
     @_('PROGRAM IS VAR declarations BEGIN commands END')
@@ -91,7 +90,8 @@ class TobiqParser(Parser):
         self.proceduresNames.append(["MAIN"])
         global_.variableInit.append(True)
         for i in range(len(global_.variablesNames)):
-            if not ('_' in global_.variablesNames[i] or '^' in global_.variablesNames[i]): # if varName one word concat name of procedure in front
+            # if varName one word concat name of procedure in front
+            if not ('_' in global_.variablesNames[i] or '^' in global_.variablesNames[i]): 
                global_.variablesNames[i] = self.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
         return [["MAIN", p[5]]]
 
@@ -100,7 +100,8 @@ class TobiqParser(Parser):
         self.proceduresNames.append(["MAIN"])
         global_.variableInit.append(True)
         for i in range(len(global_.variablesNames)):
-            if not ('_' in global_.variablesNames[i] or '^' in global_.variablesNames[i]): # if varName one word concat name of procedure in front
+            # if varName one word concat name of procedure in front
+            if not ('_' in global_.variablesNames[i] or '^' in global_.variablesNames[i]): 
                global_.variablesNames[i] = self.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
         return [["MAIN" , p[3]]]
 
