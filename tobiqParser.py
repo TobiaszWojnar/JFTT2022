@@ -6,18 +6,15 @@ from tobiqExceptions import *
 
 class TobiqParser(Parser):    
     tokens = TobiqLexer.tokens
+
     isInitTrue = True
+    
     proceduresNames = []
 
-    # table of potencial errors
+    # Table of potential errors
     # [varName::String, lineNr::Int]
-    UninitializedUsage = [[]]
+    UninitializedUsage = []
 
-    #TODO for now works with one function
-    # change to do we add False on exit identifier procedures
-    # will work for only one?
-    # on exit z procedury make true
-    # on empty make false
 
     @_('procedures main')
     def program_all(self, p):
@@ -32,24 +29,18 @@ class TobiqParser(Parser):
 
     @_('procedures PROCEDURE proc_head IS VAR declarations BEGIN commands END')
     def procedures(self, p):
-        uninitializedUsageHandler(self, True)
-        # if self.UninitializedUsage != [[]]:
-        #     for uninitUsageError in self.UninitializedUsage:
-        #         if uninitUsageError != []:
-        #             print ("WARNING: Potential UninitializedUsageException "+str(uninitUsageError))
-        #         # print ("WARNING: Potential UninitializedUsageException " + uninitUsageError[0] + " in line "+uninitUsageError[1])
-        #     self.UninitializedUsage = [[]]
 
-        duplicates = duplicatesFinder(p[2][1]+p[5])
-        if len(duplicates) > 0:
-            raise SecondaryVariableDeclarationException(duplicates,p[2][0])
+        # Check for errors
+        uninitializedUsageHandler(self, True)
+        secondaryVariableDeclarationHandler(p[2][1]+p[5], p[2][0])
 
         self.proceduresNames.append([p[2][0],len(p[2][1])])
         global_.variablesNames.append("JUMPBACK")
         global_.variableInit.append(True)
 
         for i in range(len(global_.variablesNames)):
-            if not ('_' in global_.variablesNames[i] or '^' in global_.variablesNames[i]): # if varName one word concat name of procedure in front
+            # if varName one word concat name of procedure in front
+            if not ('_' in global_.variablesNames[i] or '^' in global_.variablesNames[i]):
                 # external value
                 if global_.variablesNames[i] in p[2][1]:
                     global_.variablesNames[i] = self.proceduresNames[-1][0] + "^" + global_.variablesNames[i]
@@ -58,24 +49,18 @@ class TobiqParser(Parser):
                     global_.variablesNames[i] = self.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
 
         procedureBody = [["PROCEDURE", p[2][0], p[7]]]
+
         if p[0] != None:
-            return p[0] + procedureBody# p[5],
+            return p[0] + procedureBody
         else:
-            return procedureBody# p[5],
+            return procedureBody
 
     @_('procedures PROCEDURE proc_head IS BEGIN commands END')
     def procedures(self, p):
-        uninitializedUsageHandler(self, True)
-        # if self.UninitializedUsage != [[]]:
-        #     for uninitUsageError in self.UninitializedUsage:
-        #         if uninitUsageError != []:
-        #             print ("WARNING: Potential UninitializedUsageException "+str(uninitUsageError))
-        #         # print ("WARNING: Potential UninitializedUsageException " + uninitUsageError[0] + " in line "+uninitUsageError[1])
-        #     self.UninitializedUsage = [[]]
 
-        duplicates = duplicatesFinder(p[2][1])
-        if len(duplicates) > 0:
-            raise SecondaryVariableDeclarationException(duplicates,p[2][0])
+        # Check for errors
+        uninitializedUsageHandler(self, True)
+        secondaryVariableDeclarationHandler(p[2][1], p[2][0])
 
         self.proceduresNames.append([p[2][0],len(p[2][1])])
         global_.variablesNames.append("JUMPBACK")
@@ -84,7 +69,8 @@ class TobiqParser(Parser):
         # self.isInitTrue = True
 
         for i in range(len(global_.variablesNames)):
-            if not ('_' in global_.variablesNames[i] or '^' in global_.variablesNames[i]): # if varName one word concat name of procedure in front
+            # if varName one word concat name of procedure in front
+            if not ('_' in global_.variablesNames[i] or '^' in global_.variablesNames[i]):
                 # external value
                 if global_.variablesNames[i] in p[2][1]:
                     global_.variablesNames[i] = self.proceduresNames[-1][0] + "^" + global_.variablesNames[i]
@@ -93,6 +79,7 @@ class TobiqParser(Parser):
                     global_.variablesNames[i] = self.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
 
         procedureBody = [["PROCEDURE", p[2][0], p[5]]]
+
         if p[0] != None:
             return p[0]+procedureBody
         else:
@@ -104,17 +91,10 @@ class TobiqParser(Parser):
 
     @_('PROGRAM IS VAR declarations BEGIN commands END')
     def main(self, p):
-        uninitializedUsageHandler(self, True)
-        # if self.UninitializedUsage != [[]]:
-        #     for uninitUsageError in self.UninitializedUsage:
-        #         if uninitUsageError != []:
-        #             print ("WARNING: Potential UninitializedUsageException "+str(uninitUsageError))
-        #         # print ("WARNING: Potential UninitializedUsageException " + uninitUsageError[0] + " in line "+uninitUsageError[1])
-        #     self.UninitializedUsage = [[]]        
 
-        duplicates = duplicatesFinder(p[3])
-        if len(duplicates) > 0:
-            raise SecondaryVariableDeclarationException(duplicates,p[2][0])
+        # Check for errors
+        uninitializedUsageHandler(self, True) 
+        secondaryVariableDeclarationHandler(p[3], p[2][0])
 
         self.proceduresNames.append(["MAIN"])
         global_.variableInit.append(True)
@@ -126,12 +106,9 @@ class TobiqParser(Parser):
 
     @_('PROGRAM IS BEGIN commands END')
     def main(self, p):
-        uninitializedUsageHandler(self, True)
-        # if self.UninitializedUsage != [[]]:
-        #     for uninitUsageError in self.UninitializedUsage:
-        #         print ("WARNING: Potential UninitializedUsageException "+str(uninitUsageError)+"6")
-        #         # print ("WARNING: Potential UninitializedUsageException " + uninitUsageError[0] + " in line "+uninitUsageError[1])
-        #     self.UninitializedUsage = [[]]        
+
+        # Check for errors  
+        uninitializedUsageHandler(self, True)      
 
         self.proceduresNames.append(["MAIN"])
         global_.variableInit.append(True)
@@ -163,37 +140,26 @@ class TobiqParser(Parser):
 
     @_('IF condition THEN commands ELSE commands ENDIF')
     def command(self, p):
+
+        # Check for warnings
         uninitializedUsageHandler(self, False)
-        # if self.UninitializedUsage != []:
-        #     for uninitUsageError in self.UninitializedUsage:
-        #         if uninitUsageError != []:
-        #             print ("WARNING: Potential UninitializedUsageException "+str(uninitUsageError))
-        #         # print ("WARNING: Potential UninitializedUsageException " + uninitUsageError[0] + " in line "+uninitUsageError[1])
-        #     self.UninitializedUsage = [[]]
 
         return ["IFELSE", p[1], p[3], p[5]]
 
     @_('IF condition THEN commands ENDIF')
     def command(self, p):
-        uninitializedUsageHandler(self, False)  
-        # if self.UninitializedUsage != [[]]:
-        #     for uninitUsageError in self.UninitializedUsage:
-        #         if uninitUsageError != []:
-        #             print ("WARNING: Potential UninitializedUsageException "+str(uninitUsageError))
-        #         # print ("WARNING: Potential UninitializedUsageException " + uninitUsageError[0] + " in line "+uninitUsageError[1])
-        #     self.UninitializedUsage = [[]]
+
+        # Check for warnings
+        uninitializedUsageHandler(self, False)
 
         return ["IF", p[1], p[3]]
 
     @_('WHILE condition DO commands ENDWHILE')
     def command(self, p):
+
+        # Check for warnings
         uninitializedUsageHandler(self, False)
-        # if self.UninitializedUsage != [[]]:
-        #     for uninitUsageError in self.UninitializedUsage:
-        #         if uninitUsageError != []:
-        #             print ("WARNING: Potential UninitializedUsageException "+str(uninitUsageError))
-        #         # print ("WARNING: Potential UninitializedUsageException " + uninitUsageError[0] + " in line "+uninitUsageError[1])
-        #     self.UninitializedUsage = [[]]
+
         return ["WHILE", p[1], p[3]]
 
     @_('REPEAT commands UNTIL condition ";"')
@@ -331,25 +297,26 @@ def initChecker(self,identifier):
     if identifier.isnumeric() or global_.variableInit[global_.variablesNames.index(identifier)]:
         return True
     else:
-        # print ("UninitializedUsageException " + identifier + " in line "+str(global_.lineNumber))
-            # [varName::String, lineNr::Int]
         self.UninitializedUsage.append([identifier,global_.lineNumber])
         return False # TODO might not be init
-        # raise UninitializedUsageException(identifier,global_.lineNumber)
 
 def uninitializedUsageHandler(self, isError):
+
+    # if isError throw error else only warning
     if isError:
         if self.UninitializedUsage != [[]]:
-            # first = ["a", 1]
-            # first = self.UninitializedUsage[0]
-            for uninitUsageError in self.UninitializedUsage:
-                if uninitUsageError != []:
-                    # print("ERROR: UninitializedUsageException " + uninitUsageError[0] + " in line "+str(uninitUsageError[1]))
-                    raise UninitializedUsageException(uninitUsageError[0],uninitUsageError[1])
+            for error in self.UninitializedUsage:
+                if error != []:
+                    raise UninitializedUsageException(error[0],error[1])
             self.UninitializedUsage = [[]]
     else:
         if self.UninitializedUsage != [[]]:
-            for uninitUsageError in self.UninitializedUsage:
-                if uninitUsageError != []:
-                    print("WARNING: Potential UninitializedUsageException " + uninitUsageError[0] + " in line "+str(uninitUsageError[1]))
+            for error in self.UninitializedUsage:
+                if error != []:
+                    print("WARNING: Potential UninitializedUsageException " + error[0] + " in line "+str(error[1]))
             self.UninitializedUsage = [[]]
+
+def secondaryVariableDeclarationHandler(variables, procedureName):
+    duplicates = duplicatesFinder(variables)
+    if len(duplicates) > 0:
+        raise SecondaryVariableDeclarationException(duplicates,procedureName)
