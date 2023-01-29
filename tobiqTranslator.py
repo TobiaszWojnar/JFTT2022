@@ -5,6 +5,8 @@ class TobiqTranslator:
     code = []
     callbackTable = []
     comments = ""
+    lineCounter = 0
+
 
 
     def translate(self,instructions):
@@ -27,7 +29,8 @@ class TobiqTranslator:
     def appendCode(self,instr):
         self.comments = self.comments.replace("[", "(" ).replace("]", ")" )
 
-        global_.lineCounter=global_.lineCounter+1
+        self.lineCounter += 1
+        
         if self.comments != "":
             self.code.append(instr+"    ["+self.comments+"]")
             self.comments = ""
@@ -43,7 +46,7 @@ class TobiqTranslator:
     def translateProcedures(self,instructions):
         for proc in instructions:
             if proc[0] == "PROCEDURE":
-                self.callbackTable.append([proc[1], global_.lineCounter])
+                self.callbackTable.append([proc[1], self.lineCounter])
                 procNameVariables = self.getVarNameInProc(proc[1])
                 self.comments += " begin proc $"+proc[1]
                 self.translateBlock(proc[2], proc[1], procNameVariables)
@@ -51,7 +54,7 @@ class TobiqTranslator:
                 self.appendCode("JUMPI @"+proc[1]+"_JUMPBACK    [end proc $"+proc[1]+"]")
 
             elif proc[0] == "MAIN":
-                self.callbackTable.append(["MAIN_JUMP", global_.lineCounter])
+                self.callbackTable.append(["MAIN_JUMP", self.lineCounter])
                 procNameVariables = self.getVarNameInProc("MAIN")
                 self.comments += " begin main"
                 self.translateBlock(proc[1],"MAIN", procNameVariables)
@@ -80,7 +83,7 @@ class TobiqTranslator:
                 # Setting value of the jump
                 for jumpNr, jumpVal in enumerate(self.callbackTable):
                     if jumpVal[0] == jumpF:
-                        self.callbackTable[jumpNr][1] = global_.lineCounter
+                        self.callbackTable[jumpNr][1] = self.lineCounter
 
             elif inst[0] == "IFELSE":
 
@@ -104,7 +107,7 @@ class TobiqTranslator:
                 # Setting value of the jump false
                 for jumpNr, jumpVal in enumerate(self.callbackTable):
                     if jumpVal[0] == jumpF:
-                        self.callbackTable[jumpNr][1] = global_.lineCounter
+                        self.callbackTable[jumpNr][1] = self.lineCounter
 
                 self.comments += " ifelse false"
                 self.translateBlock(inst[3], procName, procNameVariables)
@@ -112,14 +115,14 @@ class TobiqTranslator:
                 # Setting value of the jump after
                 for jumpNr, jumpVal in enumerate(self.callbackTable):
                     if jumpVal[0] == jumpOut:
-                        self.callbackTable[jumpNr][1] = global_.lineCounter
+                        self.callbackTable[jumpNr][1] = self.lineCounter
 
             elif inst[0] == "WHILE":
 
                 jumpOut = "WHILE_OUT_"+str(len(self.callbackTable))
                 self.callbackTable.append([jumpOut, 0])
                 jumpBack = "WHILE_BACK_"+str(len(self.callbackTable))
-                self.callbackTable.append([jumpBack, global_.lineCounter+1])
+                self.callbackTable.append([jumpBack, self.lineCounter+1])
 
                 self.comments += " while"
 
@@ -131,13 +134,13 @@ class TobiqTranslator:
 
                 for jumpNr, jumpVal in enumerate(self.callbackTable):
                     if jumpVal[0] == jumpOut:
-                        self.callbackTable[jumpNr][1] = global_.lineCounter
+                        self.callbackTable[jumpNr][1] = self.lineCounter
 
             elif inst[0] == "REPEAT":
                 self.comments += " repeat"
 
                 jumpBack = "REPEAT_BACK_"+str(len(self.callbackTable))
-                self.callbackTable.append([jumpBack, global_.lineCounter])
+                self.callbackTable.append([jumpBack, self.lineCounter])
                 jumpOut = "REPEAT_OUT_"+str(len(self.callbackTable))
                 self.callbackTable.append([jumpOut, 0])
 
@@ -150,7 +153,7 @@ class TobiqTranslator:
 
                 for jumpNr, jumpVal in enumerate(self.callbackTable):
                     if jumpVal[0] == jumpOut:
-                        self.callbackTable[jumpNr][1] = global_.lineCounter
+                        self.callbackTable[jumpNr][1] = self.lineCounter
             
             elif inst[0] == "PROC":
                 self.comments += " call proc $"+inst[1]
@@ -164,7 +167,7 @@ class TobiqTranslator:
                         self.appendCode("LOAD @"+procName+"^"+inst[2][i]) ### TODO?
                     self.appendCode("STORE @"+thisProcNameVariables[i])
 
-                self.appendCode("SET "+str(global_.lineCounter+3))
+                self.appendCode("SET "+str(self.lineCounter+3))
                 self.appendCode("STORE  @"+inst[1]+"_JUMPBACK")
                 self.appendCode("JUMP @"+inst[1])
 
@@ -235,14 +238,14 @@ class TobiqTranslator:
                 self.appendCode("LOAD"+exp1END)                          # acc = p
                                                                         # n = acc
                                                                         # should it be a line?
-                self.appendCode("JZERO  "+str(global_.lineCounter+9))    # if acc = 0 break
+                self.appendCode("JZERO  "+str(self.lineCounter+9))    # if acc = 0 break
                 self.appendCode("SUB    @1")                               # acc -1
                 self.appendCode("STORE  @TMP1")                          # n = acc
                 self.appendCode("LOAD   @TMP2")                           # acc = m
                 self.appendCode("ADD"+exp2END)                          # acc + q
                 self.appendCode("STORE  @TMP2")                          # m = acc
                 self.appendCode("LOAD   @TMP1")                           # acc = n
-                self.appendCode("JPOS   "+str(global_.lineCounter-6))    # jump back if positive
+                self.appendCode("JPOS   "+str(self.lineCounter-6))    # jump back if positive
                 self.appendCode("LOAD   @TMP2")                           # acc = m
                 self.appendCode("STORE"+resultEND)                                               # id = acc
 
@@ -251,18 +254,18 @@ class TobiqTranslator:
                 self.appendCode("SET    0")                             # c = 0
                 self.appendCode("STORE  @TMP2")
                 self.appendCode("LOAD"+exp2END)                        # if b = 0
-                self.appendCode("JZERO  "+str(global_.lineCounter+7+5)) #
+                self.appendCode("JZERO  "+str(self.lineCounter+7+5)) #
                 self.appendCode("LOAD"+exp1END)                        # if a = 0
-                self.appendCode("JZERO  "+str(global_.lineCounter+7+3)) #
+                self.appendCode("JZERO  "+str(self.lineCounter+7+3)) #
                 self.appendCode("ADD    @1")                            # trick add 1 for evaulation a>b
                 self.appendCode("SUB"+exp2END)
-                self.appendCode("JZERO  "+str(global_.lineCounter+7))   # if !(a > b)
+                self.appendCode("JZERO  "+str(self.lineCounter+7))   # if !(a > b)
                 self.appendCode("STORE  @TMP1")
                 self.appendCode("LOAD   @TMP2")                      # c++
                 self.appendCode("ADD    @1")
                 self.appendCode("STORE  @TMP2")
                 self.appendCode("LOAD   @TMP1")
-                self.appendCode("JUMP   "+str(global_.lineCounter-7)+"  [end div]")   # back jump
+                self.appendCode("JUMP   "+str(self.lineCounter-7)+"  [end div]")   # back jump
                 self.appendCode("LOAD   @TMP2")
                 self.appendCode("STORE"+resultEND)
 
@@ -271,19 +274,19 @@ class TobiqTranslator:
                 self.appendCode("SET    0")                             # c = 0
                 self.appendCode("STORE  @TMP2")
                 self.appendCode("LOAD"+exp2END)                        # if b = 0
-                self.appendCode("JZERO  "+str(global_.lineCounter+7+6)) #
+                self.appendCode("JZERO  "+str(self.lineCounter+7+6)) #
                 self.appendCode("LOAD"+exp1END)                        # if a = 0
-                self.appendCode("JZERO  "+str(global_.lineCounter+7+4)) #
+                self.appendCode("JZERO  "+str(self.lineCounter+7+4)) #
                 self.appendCode("ADD    @1")                            # trick add 1 for evaulation a>b
                 self.appendCode("STORE  @TMP1")                         # in case a % b and  b>a
                 self.appendCode("SUB"+exp2END)
-                self.appendCode("JZERO  "+str(global_.lineCounter+7))   # if !(a > b)
+                self.appendCode("JZERO  "+str(self.lineCounter+7))   # if !(a > b)
                 self.appendCode("STORE  @TMP1")
                 self.appendCode("LOAD   @TMP2")                             # c++
                 self.appendCode("ADD    @1")
                 self.appendCode("STORE  @TMP2")
                 self.appendCode("LOAD   @TMP1")
-                self.appendCode("JUMP   "+str(global_.lineCounter-7)+"  [end div]")   # back jump
+                self.appendCode("JUMP   "+str(self.lineCounter-7)+"  [end div]")   # back jump
                 self.appendCode("LOAD   @TMP1")
                 self.appendCode("SUB    @1")
                 self.appendCode("STORE"+resultEND)
@@ -299,7 +302,7 @@ class TobiqTranslator:
         cond1END = self.getInstrSufixForVar(cond[1],procName)
         cond2END = self.getInstrSufixForVar(cond[2],procName)
 
-        self.callbackTable.append([codePointer, global_.lineCounter])
+        self.callbackTable.append([codePointer, self.lineCounter])
 
         self.comments += str(cond)
 
@@ -316,16 +319,16 @@ class TobiqTranslator:
             self.appendCode("SET    1")                             # acc = 1       # acc = 1
             self.appendCode("ADD"+cond1END)                         # acc = 4       # acc = 6
             self.appendCode("SUB"+cond2END)                         # acc = 0       # acc = 2
-            self.appendCode("JZERO  "+str(global_.lineCounter+4))   # NOT jump_out  # NO action
+            self.appendCode("JZERO  "+str(self.lineCounter+4))   # NOT jump_out  # NO action
             self.appendCode("SUB    @1")                            # acc = 0       # acc = 1
-            self.appendCode("JPOS   "+str(global_.lineCounter+2))   #               # NOT jump_out
+            self.appendCode("JPOS   "+str(self.lineCounter+2))   #               # NOT jump_out
             self.appendCode("JUMP   @"+jumpF)
 
         elif cond[0] == "gt":   # a > b
 
             self.appendCode("LOAD"+cond1END)  
             self.appendCode("SUB"+cond2END)  
-            self.appendCode("JPOS   "+str(global_.lineCounter+2))
+            self.appendCode("JPOS   "+str(self.lineCounter+2))
             self.appendCode("JUMP   @"+jumpF)
 
         elif cond[0] == "ge":
@@ -333,7 +336,7 @@ class TobiqTranslator:
             self.appendCode("SET    1")
             self.appendCode("ADD"+cond1END)  
             self.appendCode("SUB"+cond2END)  
-            self.appendCode("JPOS   "+str(global_.lineCounter+2))
+            self.appendCode("JPOS   "+str(self.lineCounter+2))
             self.appendCode("JUMP   @"+jumpF)
             
         else:
