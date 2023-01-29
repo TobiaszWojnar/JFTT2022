@@ -1,1 +1,1 @@
-clear && ./kompilator input_codes/test2a.imp smieci && ./maszyna_wirtualna_popr/maszyna-wirtualna-cln smieci
+clear && ./kompilator myTests/3.imp smieci && ./maszyna_wirtualna_popr/maszyna-wirtualna-cln smieci

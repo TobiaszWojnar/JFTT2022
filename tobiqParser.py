@@ -7,8 +7,8 @@ from tobiqExceptions import *
 class TobiqParser(Parser):    
     tokens = TobiqLexer.tokens
     declaringNewVariablesLock = True
-    code = None
     isInitTrue = True
+    proceduresNames = []
     #TODO for now works with one function
     # change to do we add False on exit identifier procedures
     # will work for only one?
@@ -31,7 +31,7 @@ class TobiqParser(Parser):
         if len(duplicates) > 0:
             raise SecondaryVariableDeclarationException(duplicates,p[2][0])
 
-        global_.proceduresNames.append([p[2][0],len(p[2][1])])
+        self.proceduresNames.append([p[2][0],len(p[2][1])])
         global_.variablesNames.append("JUMPBACK")
         global_.variableInit.append(True)
 
@@ -39,10 +39,10 @@ class TobiqParser(Parser):
             if not ('_' in global_.variablesNames[i] or '^' in global_.variablesNames[i]): # if varName one word concat name of procedure in front
                 # external value
                 if global_.variablesNames[i] in p[2][1]:
-                    global_.variablesNames[i] = global_.proceduresNames[-1][0] + "^" + global_.variablesNames[i]
+                    global_.variablesNames[i] = self.proceduresNames[-1][0] + "^" + global_.variablesNames[i]
                 # internal value
                 else: 
-                    global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
+                    global_.variablesNames[i] = self.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
 
         procedureBody = [["PROCEDURE", p[2][0], p[7]]]
         if p[0] != None:
@@ -56,7 +56,7 @@ class TobiqParser(Parser):
         if len(duplicates) > 0:
             raise SecondaryVariableDeclarationException(duplicates,p[2][0])
 
-        global_.proceduresNames.append([p[2][0],len(p[2][1])])
+        self.proceduresNames.append([p[2][0],len(p[2][1])])
         global_.variablesNames.append("JUMPBACK")
         global_.variableInit.append(True)
 
@@ -66,10 +66,10 @@ class TobiqParser(Parser):
             if not ('_' in global_.variablesNames[i] or '^' in global_.variablesNames[i]): # if varName one word concat name of procedure in front
                 # external value
                 if global_.variablesNames[i] in p[2][1]:
-                    global_.variablesNames[i] = global_.proceduresNames[-1][0] + "^" + global_.variablesNames[i]
+                    global_.variablesNames[i] = self.proceduresNames[-1][0] + "^" + global_.variablesNames[i]
                 # internal value
                 else: 
-                    global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
+                    global_.variablesNames[i] = self.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
 
         procedureBody = [["PROCEDURE", p[2][0], p[5]]]
         if p[0] != None:
@@ -88,20 +88,20 @@ class TobiqParser(Parser):
         if len(duplicates) > 0:
             raise SecondaryVariableDeclarationException(duplicates,p[2][0])
 
-        global_.proceduresNames.append(["MAIN"])
+        self.proceduresNames.append(["MAIN"])
         global_.variableInit.append(True)
         for i in range(len(global_.variablesNames)):
             if not ('_' in global_.variablesNames[i] or '^' in global_.variablesNames[i]): # if varName one word concat name of procedure in front
-               global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
+               global_.variablesNames[i] = self.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
         return [["MAIN", p[5]]]
 
     @_('PROGRAM IS BEGIN commands END')
     def main(self, p):
-        global_.proceduresNames.append(["MAIN"])
+        self.proceduresNames.append(["MAIN"])
         global_.variableInit.append(True)
         for i in range(len(global_.variablesNames)):
             if not ('_' in global_.variablesNames[i] or '^' in global_.variablesNames[i]): # if varName one word concat name of procedure in front
-               global_.variablesNames[i] = global_.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
+               global_.variablesNames[i] = self.proceduresNames[-1][0] + "_" + global_.variablesNames[i]
         return [["MAIN" , p[3]]]
 
     @_('commands command')
@@ -149,14 +149,14 @@ class TobiqParser(Parser):
     @_('proc_head ";"')
     def command(self, p):
         fuckup = True
-        for i in global_.proceduresNames:
+        for i in self.proceduresNames:
             if p[0][0] == i[0]:
                 fuckup = False
         if fuckup:
             raise InvalidArgumentsNumberException(p[0][0],global_.lineNumber)
 
         fuckup = True
-        for i in global_.proceduresNames:
+        for i in self.proceduresNames:
             if p[0][0] == i[0] and len(p[0][1]) == i[1]:
                 fuckup = False
         if fuckup:
