@@ -6,13 +6,14 @@ class TobiqTranslator:
     callbackTable = []
     comments = ""
 
-    def translate(self):
+
+    def translate(self,instructions):
 
         self.setupConstants()
 
         self.appendCode("JUMP @MAIN_JUMP    [Jump to main]")
 
-        self.translateProcedures()
+        self.translateProcedures(instructions)
         self.appendCode("HALT")
 
         self.evalVariables()
@@ -39,8 +40,8 @@ class TobiqTranslator:
             self.appendCode("SET "+constVar+"   [set const]")
             self.appendCode("STORE  @"+constVar)
 
-    def translateProcedures(self):
-        for proc in global_.instructions:
+    def translateProcedures(self,instructions):
+        for proc in instructions:
             if proc[0] == "PROCEDURE":
                 self.callbackTable.append([proc[1], global_.lineCounter])
                 procNameVariables = self.getVarNameInProc(proc[1])

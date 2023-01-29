@@ -1,0 +1,39 @@
+SET 1   [set const]
+STORE  3
+SET 0   [set const]
+STORE  4
+SET 5   [set const]
+STORE  5
+JUMP 32    [Jump to main]
+SET 0    [ begin proc $test c := 0]
+STORE  8
+LOAD   5    [ while('gt', '5', 'c')]
+SUB   8
+JPOS   13
+JUMP   29
+SET    1    [ ifelse('eq', 'c', '0')]
+ADD   8
+SUB   4
+JZERO  22
+SUB    3
+JPOS   22
+SET 5    [ ifelse true b := 5]
+STORE  7
+JUMP 25
+LOAD   7    [ ifelse false b := ('add', 'b', '5')]
+ADD   5
+STORE  7
+LOAD   8    [ c := ('add', 'c', '1')]
+ADD   3
+STORE  8
+JUMP 10
+LOAD   7    [ a := b]
+STOREI 6
+JUMPI 9    [end proc $test]
+SET 10    [ begin main call proc $test]
+STORE 6
+SET 37
+STORE  9
+JUMP 7
+PUT 10    [ write]
+HALT

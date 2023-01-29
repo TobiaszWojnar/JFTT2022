@@ -21,10 +21,8 @@ class TobiqParser(Parser):
         global_.variablesNames = ["ACC","TMP1","TMP2"]+global_.variablesNumbers+global_.variablesNames
 
         if p[0] != None:
-            global_.instructions = p[0]+p[1]
             return p[0]+p[1]
         else:
-            global_.instructions = p[1]
             return p[1]
 
     @_('procedures PROCEDURE proc_head IS VAR declarations BEGIN commands END')
@@ -155,14 +153,14 @@ class TobiqParser(Parser):
             if p[0][0] == i[0]:
                 fuckup = False
         if fuckup:
-            raise InvalidArgumentsNumberException(p[0][0],global_.__lineNumber)
+            raise InvalidArgumentsNumberException(p[0][0],global_.lineNumber)
 
         fuckup = True
         for i in global_.proceduresNames:
             if p[0][0] == i[0] and len(p[0][1]) == i[1]:
                 fuckup = False
         if fuckup:
-            raise InvalidArgumentsNumberException(p[0][0],p[0][1],global_.__lineNumber)
+            raise InvalidArgumentsNumberException(p[0][0],p[0][1],global_.lineNumber)
         else:
             return ["PROC", p[0][0], p[0][1]]
 
@@ -256,7 +254,7 @@ class TobiqParser(Parser):
     @_('IDENTIFIER')
     def value(self, p):
         if not p[0] in global_.variablesNames:
-            raise UndeclaredVariableException(p[0],global_.__lineNumber)
+            raise UndeclaredVariableException(p[0],global_.lineNumber)
         else:
             return p[0]
 
@@ -279,4 +277,4 @@ def initChecker(identifier):
     if identifier.isnumeric() or global_.variableInit[global_.variablesNames.index(identifier)]:
         return True
     else:
-        raise UninitializedUsageException(identifier,global_.__lineNumber)
+        raise UninitializedUsageException(identifier,global_.lineNumber)

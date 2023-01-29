@@ -14,19 +14,18 @@ def main():
         text = in_f.read()
 
     try:
-        pars.parse(lex.tokenize(text))
+        instructions = pars.parse(lex.tokenize(text))
 
     # DEBUG
-        if len(sys.argv) > 2: 
-            print(global_.instructions)
+        if len(sys.argv) > 3: 
             print(global_.variablesNames)
             print(global_.proceduresNames)
             with open(sys.argv[3]+".log", 'w') as out_f:
-                for line in global_.instructions:
+                for line in instructions:
                     print(line, file=out_f)
 
         trans = TobiqTranslator()
-        trans.translate()
+        trans.translate(instructions)
 
         with open(sys.argv[2], 'w') as out_f:
             for line in trans.code:

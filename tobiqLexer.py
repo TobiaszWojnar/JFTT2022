@@ -17,7 +17,7 @@ class TobiqLexer(Lexer):
 
     @_(r'\n+')
     def ignore_newline(self, t):
-        global_.__lineNumber+=1
+        global_.lineNumber+=1
 
 
     def error(self, t):
