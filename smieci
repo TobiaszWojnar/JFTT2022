@@ -1,9 +1,0 @@
-SET 1   [set const]
-STORE  3
-SET 3   [set const]
-STORE  4
-JUMP 5    [Jump to main]
-SET 3    [ begin main a := 3]
-STORE  5
-PUT 5    [ write]
-HALT
